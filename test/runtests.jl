@@ -15,6 +15,11 @@ using Base.Test, Distributions
     wdist = BinChoice()
     w = getw(d, sparsity, wdist)
     X = getX(n, d, Xdist)
-    y = X * w
-    @test y[1] ≈ -1.72637
+    Y = X * w
+    @test isapprox(Y[1], -1.72637, atol=1e-4)
+
+    @test_throws ErrorException getdata(Xdist = MvNormal(μ * ones(d), Σ), wdist = BinChoice(), n = 100, p = 100, k = 10)
+    srand(1)
+    bd = getdata(Xdist = MvNormal(μ * ones(d), Σ), wdist = BinChoice(), n = n, p = d, k = sparsity)
+    @test isapprox(bd.Y[1], -1.72637, atol=1e-4)
 end
