@@ -38,21 +38,16 @@ function getdata(; Xdist::BenchmarkXDists = Normal(),
                          k::Int = 10
                         )
     bd = BenchmarkData(Xdist, wdist, n, p, k)
-    X = getX(bd)
     w = getw(bd)
+    X = getX(bd)
+    # In case we are using a multivariate distribution for x
+    size(X) == (n, p) || error("X distribution doesn't match dimensions requested.")
     Y = X * w
     RegressionData(X, Y, w)
 end
-function getdata(; Xdist::BenchmarkXDists = Normal(),
-                         wdist::BenchmarkwDists = BinChoice(),
-                         n::Int = 100,
-                         p::Int = 100,
-                         k::Int = 10
-                        )
-    bd = BenchmarkData(Xdist, wdist, n, p, k)
+function getdata(bd::BenchmarkData)
     w = getw(bd)
     X = getX(bd)
-    size(X) == (n, p) || error("X distribution doesn't match dimensions requested.")
     Y = X * w
     RegressionData(X, Y, w)
 end
