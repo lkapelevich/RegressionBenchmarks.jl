@@ -2,11 +2,11 @@ function validate_params!(bd::BenchmarkData, m::RegressionMethod)
     error("No validation method for $m.")
 end
 
-function validate_params!(bd::BenchmarkData, rd::RegressionData, m::ExactPrimalCuttingPlane)
+function validate_params!(X, Y, rd::RegressionData, m::ExactPrimalCuttingPlane)
 
     # Just need to validate gamma
     nfolds = 10
-    folds = kfolds(rd.X, rd.Y, k = nfolds)
+    folds = kfolds(X, Y, k = nfolds)
 
     gamma_factors = 2.^collect(0:10)
 

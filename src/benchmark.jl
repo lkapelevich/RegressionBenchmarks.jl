@@ -1,5 +1,5 @@
 # reload("RegressionBenchmarks")
-using RegressionBenchmarks, Distributions
+using RegressionBenchmarks, Distributions, MLDataUtils
 
 """
     accuracy(pred::Vector{Int}, truth::Vector{Int})
@@ -27,19 +27,25 @@ function falsepositive(pred::Vector{Int}, truth::Vector{Int})
     detected / length(pred)
 end
 
-function benchmark_notest(bd::BenchmarkData, method::RegressionMethod)
+function benchmark(bd::BenchmarkData, method::RegressionMethod)
+
     # Generate some synthetic data
     rd = getdata(bd)
     true_support = find(rd.w > 0)
-    # Validate the right method parameters
-    validate_params!(bd, rd, method)
-    tic()
-    indices, w = solve_problem(data, method)
-    time = toq()
-    a = accuracy(indices, true_support)
-    f = false_positive(indices, true_support)
-    mse = abs2(rd.Y - bd.X * w)
-    [a, f, mse, time]
+    results = [0.0, 0.0, 0.0, 0.0]
+
+    folds = kfolds((bd.X, bd.Y), k = 5)
+    for ((X_train, y_train), (X_test, y_test)) in folds
+        # Validate the right method parameters
+        validate_params!(X_train, y_train, rd, method)
+        tic()
+        indices, w = solve_problem(data, method)
+        time = toq()
+        a = accuracy(indices, true_support)
+        f = false_positive(indices, true_support)
+        mse = sum(abs2.(rd.Y - bd.X * w))
+        results = [a, f, mse, time]
+    end
 end
 
 

@@ -18,8 +18,12 @@ using Base.Test, Distributions
     Y = X * w
     @test isapprox(Y[1], -1.72637, atol=1e-4)
 
-    @test_throws ErrorException getdata(Xdist = MvNormal(μ * ones(d), Σ), wdist = BinChoice(), n = 100, p = 100, k = 10)
+    @test_throws ErrorException getdata(Xdist = MvNormal(μ * ones(d), Σ),
+        wdist = BinChoice(),
+        noisedist = NoNoise(),
+        n = 100, p = 100, k = 10)
     srand(1)
-    bd = getdata(Xdist = MvNormal(μ * ones(d), Σ), wdist = BinChoice(), n = n, p = d, k = sparsity)
-    @test isapprox(bd.Y[1], -1.72637, atol=1e-4)
+    rd = getdata(Xdist = MvNormal(μ * ones(d), Σ), wdist = BinChoice(), n = n, p = d, k = sparsity)
+    @show rd.Y[1]
+    @test isapprox(rd.Y[1], -1.72637, atol=1e-4)
 end

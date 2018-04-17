@@ -1,13 +1,19 @@
 struct BinChoice <: DiscreteUnivariateDistribution end
+struct NoNoise <: DiscreteUnivariateDistribution end
 
 rand(::BinChoice) = sample([-1, 1])
+rand(::NoNoise) = 0.0
+rand(::NoNoise, i::Int) = zeros(i)
 
 const BenchmarkXDists = Union{Normal, MvNormal, Uniform}
 const BenchmarkwDists = Union{BinChoice, Normal, Uniform}
+const BenchmarkNoiseDists = Union{NoNoise, Normal}
 
 struct BenchmarkData
     Xdist::BenchmarkXDists
     wdist::BenchmarkwDists
+    noisedist::BenchmarkNoiseDists
+    SNR::Float64
     n::Int
     d::Int
     k::Int
@@ -31,4 +37,11 @@ function getX(n::Int, d::Int, Xdist::MvNormal)
 end
 function getX(bd::BenchmarkData)
     getX(bd.n, bd.d, bd.Xdist)
+end
+
+function getnoise(n::Int, nd::BenchmarkNoiseDists)
+    rand(nd, n)
+end
+function getnoise(bd::BenchmarkData)
+    getnoise(bd.n, bd.noisedist)
 end
