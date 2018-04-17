@@ -23,11 +23,6 @@ type RegressionData
     w::Vector{Float64}
 end
 
-function scalenoise!(Y::Vector{Float64}, noise::Vector{Float64}, SNR::Float64)
-    norm(noise) < 1e-3 && return
-    noise .*= (norm(Y) / ( sqrt(SNR) * norm(noise) ) )
-    nothing
-end
 
 """
     function getdata(; Xdist::DataType{XDist} = Normal,
@@ -48,21 +43,18 @@ function getdata(; Xdist::BenchmarkXDists = Normal(),
     bd = BenchmarkData(Xdist, wdist, noisedist, SNR, n, p, k)
     w = getw(bd)
     X = getX(bd)
-    noise = getnoise(bd)
     # In case we are using a multivariate distribution for x
-    size(X) == (n, p) || error("X distribution doesn't match dimensions requested.")
+    size(X) == (n, p) || error("X distribution $Xdist doesn't match dimensions requested, $n by $p.")
     Y = X * w
-    SNR < 1e-3 && error("Your SNR is too small.")
-    scalenoise!(Y, noise, bd.SNR)
+    noise = getnoise(bd, Y)
     Y .+= noise
     RegressionData(X, Y, w)
 end
 function getdata(bd::BenchmarkData)
     w = getw(bd)
     X = getX(bd)
-    noise = getnoise(bd)
     Y = X * w
-    scalenoise!(Y, noise, bd.SNR)
+    noise = getnoise(bd, Y)
     Y .+= noise
     RegressionData(X, Y, w)
 end

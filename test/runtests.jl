@@ -17,7 +17,7 @@ using Base.Test, Distributions
     X = getX(n, d, Xdist)
     Y = X * w
     @test isapprox(Y[1], -1.72637, atol=1e-4)
-
+    
     @test_throws ErrorException getdata(Xdist = MvNormal(μ * ones(d), Σ),
         wdist = BinChoice(),
         noisedist = NoNoise(),

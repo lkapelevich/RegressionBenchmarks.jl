@@ -39,9 +39,17 @@ function getX(bd::BenchmarkData)
     getX(bd.n, bd.d, bd.Xdist)
 end
 
-function getnoise(n::Int, nd::BenchmarkNoiseDists)
-    rand(nd, n)
+function getnoise(bnd::NoNoise, ::Float64, Y::Vector{Float64})
+    n = length(Y)
+    zeros(n)
 end
-function getnoise(bd::BenchmarkData)
-    getnoise(bd.n, bd.noisedist)
+function getnoise(bnd::BenchmarkNoiseDists, SNR::Float64, Y::Vector{Float64})
+    n = length(Y)
+    noise = rand(bnd, n)
+    norm(noise) < 1e-3 && return noise
+    SNR < 1e-3 && error("Your SNR is too small.")
+    noise .*= (norm(Y) / ( SNR * norm(noise) ) )
+end
+function getnoise(bd::BenchmarkData, Y::Vector{Float64})
+    getnoise(bd.noisedist, bd.SNR, Y)
 end

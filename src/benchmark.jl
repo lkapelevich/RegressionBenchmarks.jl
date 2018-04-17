@@ -1,51 +1,30 @@
 # reload("RegressionBenchmarks")
 using RegressionBenchmarks, Distributions, MLDataUtils
 
-"""
-    accuracy(pred::Vector{Int}, truth::Vector{Int})
-
-Returns proportion of indices in `truth` that are also in `pred`.
-"""
-function accuracy(pred::Vector{Int}, truth::Vector{Int})
-    detected = 0
-    for t in truth
-        (t in pred) && (detected += 1)
-    end
-    detected / length(truth)
-end
-
-"""
-    falsepositive(pred::Vector{Int}, truth::Vector{Int})
-
-Returns the proportion of indices in `pred` that are not in `truth`.
-"""
-function falsepositive(pred::Vector{Int}, truth::Vector{Int})
-    detected = 0
-    for p in pred
-        (p in truth) || (detected += 1)
-    end
-    detected / length(pred)
-end
-
 function benchmark(bd::BenchmarkData, method::RegressionMethod)
 
     # Generate some synthetic data
     rd = getdata(bd)
-    true_support = find(rd.w > 0)
-    results = [0.0, 0.0, 0.0, 0.0]
+    true_support = find(rd.w .> 0)
+    results = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-    folds = kfolds((bd.X, bd.Y), k = 5)
+    folds = kfolds(shuffleobs((rd.X', rd.Y)), k = 5)
     for ((X_train, y_train), (X_test, y_test)) in folds
         # Validate the right method parameters
-        validate_params!(X_train, y_train, rd, method)
+        X_train, X_test = X_train', X_test'
+        validate_params!(X_train, y_train, bd.k, method)
         tic()
-        indices, w = solve_problem(data, method)
+        indices, w = solve_problem(method, X_train, y_train, bd.k)
         time = toq()
         a = accuracy(indices, true_support)
-        f = false_positive(indices, true_support)
-        mse = sum(abs2.(rd.Y - bd.X * w))
-        results = [a, f, mse, time]
+        f = falsepositive(indices, true_support)
+        pred_train = predict_sparse(X_train, indices, w)
+        train_R2 = isRsquared(pred_train, y_train)
+        pred_test  = predict_sparse(X_test, indices, w)
+        test_R2 = oosRsquared(pred_test, y_test, y_train)
+        results = [a, f, train_R2, test_R2, time]
     end
+    results
 end
 
 
@@ -61,8 +40,8 @@ sparsity = 5
 end
 
 # Get data part
-bd = BenchmarkData(MvNormal(μ * ones(d), Σ), BinChoice(), n, d, sparsity)
+bd = BenchmarkData(MvNormal(μ * ones(d), Σ), BinChoice(), NoNoise(), 0.0, n, d, sparsity)
 # Validate
 # Test
 m = ExactPrimalCuttingPlane()
-results = benchmark_notest(bd, m)
+results = benchmark(bd, m)
