@@ -7,6 +7,7 @@ end
 ExactPrimalCuttingPlane() = ExactPrimalCuttingPlane(0.0, 30.0)
 struct RelaxPrimalCuttingPane <: RegressionMethod end
 struct RelaxDualSubgradient <: RegressionMethod end
+struct PrimalWithHeuristics <: RegressionMethod end
 
 
 function solve_problem(m::ExactPrimalCuttingPlane, X::Array{Float64,2}, Y, sparsity::Int)

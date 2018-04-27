@@ -1,3 +1,5 @@
+import Distributions.MvNormal
+
 struct BinChoice <: DiscreteUnivariateDistribution end
 struct NoNoise <: DiscreteUnivariateDistribution end
 
@@ -9,14 +11,47 @@ const BenchmarkXDists = Union{Normal, MvNormal, Uniform}
 const BenchmarkwDists = Union{BinChoice, Normal, Uniform}
 const BenchmarkNoiseDists = Union{NoNoise, Normal}
 
+abstract type XCorrelation end
+struct NoCorrelation <: XCorrelation end
+struct MatrixCorrelation <: XCorrelation
+    coeff::Float64
+end
+
+struct XData{T <: BenchmarkXDists}
+    dist::T
+    corr::XCorrelation
+end
+XData() = XData(MvNormal, NoCorrelation())
+
 struct BenchmarkData
-    Xdist::BenchmarkXDists
+    Xdata::XData
     wdist::BenchmarkwDists
     noisedist::BenchmarkNoiseDists
     SNR::Float64
     n::Int
     d::Int
     k::Int
+end
+
+"""
+    XData(::Type{T}, c::XCorrelation, d::Int) where {T <: BenchmarkXDists}
+
+Instantiates a distribution of type `T` and modifies it,so that we follow
+ correlation type `c`. Returns type `XData`, caching the distribution and
+correlation type we used.
+"""
+function XData(::Type{T}, c::XCorrelation, d::Int) where {T <: BenchmarkXDists}
+    error("Need to implement method XData for $T and $c.")
+end
+function XData(::Type{MvNormal}, c::NoCorrelation, d::Int)
+    XData(MvNormal(zeros(d), eye(d)), c)
+end
+function XData(::Type{MvNormal}, c::MatrixCorrelation, d::Int)
+    Σ = c.coeff * ones(d, d)
+    @inbounds for i = 1:d
+        Σ[i, i] = 1.0
+    end
+    XData(MvNormal(zeros(d), Σ), c)
 end
 
 function getw(d::Int, k::Int, wdist::BenchmarkwDists)
@@ -29,14 +64,14 @@ function getw(bd::BenchmarkData)
     getw(bd.d, bd.k, bd.wdist)
 end
 
-function getX(n::Int, d::Int, Xdist::BenchmarkXDists)
-    rand(Xdist, n, d)
+function getX(n::Int, d::Int, Xdata::XData)
+    rand(Xdata.dist, n, d)
 end
-function getX(n::Int, d::Int, Xdist::MvNormal)
-    rand(Xdist, n)'
+function getX(n::Int, ::Int, Xdata::XData{T}) where {T <: MvNormal}
+    rand(Xdata.dist, n)'
 end
 function getX(bd::BenchmarkData)
-    getX(bd.n, bd.d, bd.Xdist)
+    getX(bd.n, bd.d, bd.Xdata)
 end
 
 function getnoise(bnd::NoNoise, ::Float64, Y::Vector{Float64})

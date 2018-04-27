@@ -17,7 +17,7 @@
 
 # logistic regression rather than regression
 
-type RegressionData
+mutable struct RegressionData
     X::Array{Float64,2}
     Y::Vector{Float64}
     w::Vector{Float64}
@@ -32,7 +32,7 @@ end
                          k::Int = 10
                         ) where {XDist <: BenchmarkXDists, wdist <: BenchmarkwDists}
 """
-function getdata(; Xdist::BenchmarkXDists = Normal(),
+function getdata(; Xdata::XData = XData(),
                          wdist::BenchmarkwDists = BinChoice(),
                          noisedist::BenchmarkNoiseDists = NoNoise(),
                          SNR::Float64 = 20.0,
@@ -40,11 +40,12 @@ function getdata(; Xdist::BenchmarkXDists = Normal(),
                          p::Int = 100,
                          k::Int = 10
                         )
-    bd = BenchmarkData(Xdist, wdist, noisedist, SNR, n, p, k)
+
+    bd = BenchmarkData(Xdata, wdist, noisedist, SNR, n, p, k)
     w = getw(bd)
     X = getX(bd)
     # In case we are using a multivariate distribution for x
-    size(X) == (n, p) || error("X distribution $Xdist doesn't match dimensions requested, $n by $p.")
+    size(X) == (n, p) || error("X distribution $(Xdata.dist) doesn't match dimensions requested, $n by $p.")
     Y = X * w
     noise = getnoise(bd, Y)
     Y .+= noise
@@ -57,4 +58,15 @@ function getdata(bd::BenchmarkData)
     noise = getnoise(bd, Y)
     Y .+= noise
     RegressionData(X, Y, w)
+end
+
+function normalize!(rd::RegressionData)
+    for p = 1:size(rd.X, 2)
+        μ = mean(rd.X[:, p])
+        σ = std(rd.X[:, p])
+        (σ < 1e-6) && continue
+        rd.X[:, p] .= (rd.X[:, p] - μ) / σ
+    end
+    rd.Y .= (rd.Y - mean(rd.Y)) / std(rd.Y)
+    nothing
 end

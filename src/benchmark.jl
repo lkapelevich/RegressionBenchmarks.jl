@@ -5,10 +5,14 @@ function benchmark(bd::BenchmarkData, method::RegressionMethod)
 
     # Generate some synthetic data
     rd = getdata(bd)
+    # Normalize it
+    normalize!(rd)
     true_support = find(rd.w .> 0)
     results = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-    folds = kfolds(shuffleobs((rd.X', rd.Y)), k = 5)
+    nfolds = 5
+
+    folds = kfolds(shuffleobs((rd.X', rd.Y)), k = nfolds)
     for ((X_train, y_train), (X_test, y_test)) in folds
         # Validate the right method parameters
         X_train, X_test = X_train', X_test'
@@ -22,26 +26,27 @@ function benchmark(bd::BenchmarkData, method::RegressionMethod)
         train_R2 = isRsquared(pred_train, y_train)
         pred_test  = predict_sparse(X_test, indices, w)
         test_R2 = oosRsquared(pred_test, y_test, y_train)
-        results = [a, f, train_R2, test_R2, time]
+        results .+= [a, f, train_R2, test_R2, time]
     end
-    results
+    results / nfolds
 end
 
 
-
-srand(1)
-n = 20
+nrange = 100:100:1000
+results_table = Array{Float64,2}(length(nrange), 5)
 d = 10
-sparsity = 5
-μ = 0.0
-Σ = 0.1 * ones(d, d)
-@inbounds for i = 1:d
-    Σ[i, i] = 1.0
-end
+srand(1)
 
-# Get data part
-bd = BenchmarkData(MvNormal(μ * ones(d), Σ), BinChoice(), NoNoise(), 0.0, n, d, sparsity)
-# Validate
-# Test
-m = ExactPrimalCuttingPlane()
-results = benchmark(bd, m)
+for (ni, n) in enumerate(nrange)
+    sparsity = 5
+    Xdist = MvNormal
+    Xcorr = MatrixCorrelation(0.1)
+    Xdata = XData(Xdist, Xcorr, d)
+    # Get data part
+    bd = BenchmarkData(Xdata, BinChoice(), NoNoise(), 0.0, n, d, sparsity)
+    # Validate
+    # Test
+    m = ExactPrimalCuttingPlane()
+
+    results_table[ni, :] .= benchmark(bd, m)
+end

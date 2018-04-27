@@ -51,3 +51,31 @@ end
 function predict_sparse(X::Array{Float64,2}, indices::Vector{Int}, w::Vector{Float64})
     X[:, indices] * w
 end
+
+function dist2str(::Union{Normal, MvNormal})
+    "normal"
+end
+function dist2str(::Uniform)
+    "uniform"
+end
+function dist2str(::BinChoice)
+    "binchoice"
+end
+function dist2str(::NoNoise)
+    "nonoise"
+end
+function corr2strint(::NoCorrelation)
+    "none"
+end
+function corr2strint(c::MatrixCorrelation)
+    "rho_$(c.coeff)"
+end
+function data2string(bd::BenchmarkData)
+    "x_" * dist2str(bd.Xdata.dist) *
+    "corr_" * dist2str(bd.Xdata.corr) *
+    "_w_" * dist2str(bd.wdist) *
+    "_noise_" * dist2str(bd.noisedist) *
+    "_snr_$(bd.SNR)" *
+    "d_$(d)" *
+    "k_$(k)"
+end

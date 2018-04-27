@@ -6,24 +6,21 @@ using Base.Test, Distributions
     n = 20
     d = 10
     sparsity = 5
-    μ = 0.0
-    Σ = 0.1 * ones(d, d)
-    @inbounds for i = 1:d
-        Σ[i, i] = 1.0
-    end
-    Xdist = MvNormal(μ * ones(d), Σ)
+    Xdist = MvNormal
+    Xcorr = MatrixCorrelation(0.1)
+    Xdata = XData(Xdist, Xcorr, d)
     wdist = BinChoice()
     w = getw(d, sparsity, wdist)
-    X = getX(n, d, Xdist)
+    X = getX(n, d, Xdata)
     Y = X * w
     @test isapprox(Y[1], -1.72637, atol=1e-4)
-    
-    @test_throws ErrorException getdata(Xdist = MvNormal(μ * ones(d), Σ),
+
+    @test_throws ErrorException getdata(Xdata = Xdata,
         wdist = BinChoice(),
         noisedist = NoNoise(),
         n = 100, p = 100, k = 10)
     srand(1)
-    rd = getdata(Xdist = MvNormal(μ * ones(d), Σ), wdist = BinChoice(), n = n, p = d, k = sparsity)
+    rd = getdata(Xdata = Xdata, wdist = BinChoice(), n = n, p = d, k = sparsity)
     @show rd.Y[1]
     @test isapprox(rd.Y[1], -1.72637, atol=1e-4)
 end
