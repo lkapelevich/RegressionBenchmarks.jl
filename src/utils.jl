@@ -64,18 +64,21 @@ end
 function dist2str(::NoNoise)
     "nonoise"
 end
-function corr2strint(::NoCorrelation)
+function corr2str(::NoCorrelation)
     "none"
 end
-function corr2strint(c::MatrixCorrelation)
+function corr2str(c::MatrixCorrelation)
     "rho_$(c.coeff)"
 end
-function data2string(bd::BenchmarkData)
+function data2str(bd::BenchmarkData)
     "x_" * dist2str(bd.Xdata.dist) *
-    "corr_" * dist2str(bd.Xdata.corr) *
+    "_corr_" * corr2str(bd.Xdata.corr) *
     "_w_" * dist2str(bd.wdist) *
     "_noise_" * dist2str(bd.noisedist) *
     "_snr_$(bd.SNR)" *
-    "d_$(d)" *
-    "k_$(k)"
+    "_d_$(bd.nfeatures)" *
+    "_k_$(bd.sparsity)"
+end
+function Base.mkdir(bd::BenchmarkData)
+    mkdir(data2str(bd))
 end

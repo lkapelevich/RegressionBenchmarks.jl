@@ -6,8 +6,8 @@ function benchmark(bd::BenchmarkData, method::RegressionMethod)
     # Generate some synthetic data
     rd = getdata(bd)
     # Normalize it
-    normalize!(rd)
-    true_support = find(rd.w .> 0)
+    # normalize!(rd)
+    true_support = find(abs.(rd.w) .> 1e-6)
     results = [0.0, 0.0, 0.0, 0.0, 0.0]
 
     nfolds = 5
@@ -49,4 +49,5 @@ for (ni, n) in enumerate(nrange)
     m = ExactPrimalCuttingPlane()
 
     results_table[ni, :] .= benchmark(bd, m)
+    
 end
