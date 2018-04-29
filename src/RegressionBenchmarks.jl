@@ -1,6 +1,7 @@
 module RegressionBenchmarks
 
 using StatsBase, Distributions, SubsetSelection, SubsetSelectionCIO, MLDataUtils
+using Gadfly
 import Base.rand #, Base.normalize!
 import Base.mkdir
 

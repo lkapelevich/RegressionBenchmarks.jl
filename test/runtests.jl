@@ -2,7 +2,7 @@ using RegressionBenchmarks
 using Base.Test, Distributions
 
 srand(1)
-n = 20
+n = [20]
 d = 10
 sparsity = 5
 Xdist = MvNormal
@@ -10,7 +10,7 @@ Xcorr = MatrixCorrelation(0.1)
 Xdata = XData(Xdist, Xcorr, d)
 wdist = BinChoice()
 w = getw(d, sparsity, wdist)
-X = getX(n, d, Xdata)
+X = getX(n[1], d, Xdata)
 Y = X * w
 
 @testset "Types" begin
@@ -26,19 +26,19 @@ Y = X * w
 
     # We should also get Y = X * w with this interface
     srand(1)
-    rd = getdata(Xdata = Xdata, wdist = BinChoice(), n = n, nfeatures = d, sparsity = sparsity)
+    rd = getdata(Xdata = Xdata, wdist = BinChoice(), n = n[1], nfeatures = d, sparsity = sparsity)
     @test isapprox(rd.Y[1], -1.72637, atol=1e-4)
 
     # ... and we should also get Y = X * w with this interface
     srand(1)
     bd = BenchmarkData(Xdata = Xdata, wdist = BinChoice(),
         noisedist = NoNoise(), SNR = 0.0, n = n, nfeatures = d, sparsity = sparsity)
-    rd = getdata(bd)
+    rd = getdata(bd, 1)
     @test isapprox(rd.Y[1], -1.72637, atol=1e-4)
 
     # We don't allow stupid values for the SNR (currently 0) if user wants noise
     bd.noisedist = Normal()
-    @test_throws ErrorException getdata(bd)
+    @test_throws ErrorException getdata(bd, 1)
 
 end
 @testset "Utils" begin

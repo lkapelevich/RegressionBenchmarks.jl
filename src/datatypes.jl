@@ -28,7 +28,7 @@ XData() = XData(MvNormal, NoCorrelation())
                          wdist::BenchmarkwDists = BinChoice(),
                          noisedist::BenchmarkNoiseDists = NoNoise(),
                          SNR::Float64 = 20.0,
-                         n::Int = 100,
+                         n::Vector{Int} = 100,
                          nfeatures::Int = 100,
                          k::Int = 10
                     )
@@ -42,7 +42,7 @@ of type `XData` has a distribution and a correlation mechanism)
 * wdist: the distribution that regression coefficients will be sampled from
 * noisedist: the distribution that noise will be sampled from
 * SNR: signal-to-noise ration ||Y|| / ||noise|| we will use to normalize Y
-* n: number of observations
+* n: range of "number of observations" we want to test
 * nfeatures: number of features
 * sparsity: underlying sparsity pattern
 """
@@ -51,7 +51,7 @@ mutable struct BenchmarkData
     wdist::BenchmarkwDists
     noisedist::BenchmarkNoiseDists
     SNR::Float64
-    n::Int
+    n::Vector{Int}
     nfeatures::Int
     sparsity::Int
 end
@@ -59,7 +59,7 @@ function BenchmarkData(; Xdata::XData = XData(),
                          wdist::BenchmarkwDists = BinChoice(),
                          noisedist::BenchmarkNoiseDists = NoNoise(),
                          SNR::Float64 = 20.0,
-                         n::Int = 100,
+                         n::Vector{Int} = [100],
                          nfeatures::Int = 100,
                          sparsity::Int = 10
                     )
@@ -104,8 +104,8 @@ end
 function getX(n::Int, ::Int, Xdata::XData{T}) where {T <: MvNormal}
     rand(Xdata.dist, n)'
 end
-function getX(bd::BenchmarkData)
-    getX(bd.n, bd.nfeatures, bd.Xdata)
+function getX(bd::BenchmarkData, i::Int)
+    getX(bd.n[i], bd.nfeatures, bd.Xdata)
 end
 
 function getnoise(bnd::NoNoise, ::Float64, Y::Vector{Float64})

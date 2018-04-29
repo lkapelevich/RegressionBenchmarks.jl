@@ -33,6 +33,10 @@ end
                          nfeatures::Int = 100,
                          sparsity::Int = 10
                 )
+
+Get regression data. Created to be stand-alone from the rest of the
+benchmarking. Maybe will remove later, want user to only interface with
+BenchmarkData object.
 """
 function getdata(; Xdata::XData = XData(),
                          wdist::BenchmarkwDists = BinChoice(),
@@ -42,16 +46,21 @@ function getdata(; Xdata::XData = XData(),
                          nfeatures::Int = 100,
                          sparsity::Int = 10
                         )
-    bd = BenchmarkData(Xdata, wdist, noisedist, SNR, n, nfeatures, sparsity)
-    getdata(bd)
+    bd = BenchmarkData(Xdata, wdist, noisedist, SNR, [n], nfeatures, sparsity)
+    getdata(bd, 1)
 end
-function getdata(bd::BenchmarkData)
+"""
+    getdata(bd::BenchmarkData, i::Int)
+
+Get regression data, the i^th value in the range for n will be used.
+"""
+function getdata(bd::BenchmarkData, i::Int)
     w = getw(bd)
-    X = getX(bd)
+    X = getX(bd, i)
     # In case we are using a multivariate distribution for x
-    if size(X) != (bd.n, bd.nfeatures)
-        error("X distribution $(bd.Xdata.dist) doesn't match dimensions
-                    requested, $(bd.n) by $(bd.nfeatures).")
+    if size(X, 2) != (bd.nfeatures)
+        error("X distribution $(bd.Xdata.dist) doesn't match the number of
+                features requested, $(bd.nfeatures).")
     end
     Y = X * w
     noise = getnoise(bd, Y)
