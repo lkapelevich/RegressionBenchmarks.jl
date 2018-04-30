@@ -1,6 +1,3 @@
-# reload("RegressionBenchmarks")
-using RegressionBenchmarks, Distributions, MLDataUtils
-
 function benchmark(bd::BenchmarkData, method::RegressionMethod)
 
     nrange = length(bd.n)
@@ -32,36 +29,4 @@ function benchmark(bd::BenchmarkData, method::RegressionMethod)
         end
     end
     results / nfolds
-end
-
-function makeplot(field::String)
-    p = plot(df, x = nrange, y = field)
-    draw(PNG(joinpath(datadir,
-                    "$(field)_sparsity$(sparsity).png"
-            ), 3inch, 3inch), p)
-    nothing
-end
-
-nrange = collect(100:100:1000)
-d = 10
-srand(1)
-Xdist = MvNormal
-Xcorr = MatrixCorrelation(0.1)
-Xdata = XData(Xdist, Xcorr, d)
-sparsity = 5
-
-# Get data part
-bd = BenchmarkData(Xdata, BinChoice(), NoNoise(), 0.0, nrange, d, sparsity)
-# Choose model
-m = ExactPrimalCuttingPlane()
-# Get results
-results_table .= benchmark(bd, m)
-# Save
-!isdir(datadir) && mkdir(datadir)
-df = convert(DataFrame, results_table)
-names!(df, [:accuracy, :false, :train_r2, :test_r2, :time, :gamma])
-writetable(joinpath(datadir, "sparsity$(sparsity).csv"), df)
-# Make plots
-for field in ["accuracy", "false", "test_r2", "time"]
-    makeplot(field)
 end
