@@ -8,12 +8,14 @@ function validate_params!(bd::BenchmarkData, m::RegressionMethod)
     error("No validation method for $m.")
 end
 
+const GammaMethods = Union{ExactPrimalCuttingPlane, PrimalWithHeuristics}
+
 """
-    validate_params!(X::Array{Float64,2}, Y, sparsity::Int, m::ExactPrimalCuttingPlane)
+    validate_params!(X::Array{Float64,2}, Y, sparsity::Int, m::GammaMethods)
 
 Just need to validate gamma.
 """
-function validate_params!(X::Array{Float64,2}, Y, sparsity::Int, m::ExactPrimalCuttingPlane)
+function validate_params!(X::Array{Float64,2}, Y, sparsity::Int, m::GammaMethods)
 
     nfolds = 10
     folds = kfolds(shuffleobs((X', Y)), k = nfolds)

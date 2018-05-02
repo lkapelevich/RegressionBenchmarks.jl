@@ -1,14 +1,14 @@
 module RegressionBenchmarks
 
 using StatsBase, Distributions, SubsetSelection, SubsetSelectionCIO,
-      MLDataUtils, JuMP
+      MLDataUtils, JuMP, Gurobi
 using Gadfly, DataFrames
 import Base.rand #, Base.normalize!
 import Base.mkdir
 
 export BinChoice, NoNoise, MatrixCorrelation, NoCorrelation,
     getw, getX, getdata, BenchmarkData, XData,
-    RegressionMethod, ExactPrimalCuttingPlane,
+    RegressionMethod, ExactPrimalCuttingPlane, PrimalWithHeuristics,
     validate_params!,
     solve_problem,
     isRsquared, oosRsquared, accuracy, falsepositive, predict_sparse,

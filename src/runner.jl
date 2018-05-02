@@ -3,14 +3,14 @@ using RegressionBenchmarks, Distributions, MLDataUtils, DataFrames
 srand(1)
 
 # The scale of data we care about
-nrange = collect(100:100:1000)
+nrange = collect(100:100:100)
 
 # Number of features
 d = 10
 # What distribution will X come from
 Xdist = MvNormal
 # What form will the correlation in X take
-Xcorr = MatrixCorrelation(0.1)
+Xcorr = NoCorrelation()
 # Create an object for our X data
 Xdata = XData(Xdist, Xcorr, d)
 # True sparsity
@@ -25,7 +25,7 @@ bd = BenchmarkData(Xdata = Xdata,
                   nfeatures = d,
                   sparsity = sparsity)
 # Choose model
-m = ExactPrimalCuttingPlane()
+m = PrimalWithHeuristics()
 # Get results
 results_table = benchmark(bd, m)
 # Save

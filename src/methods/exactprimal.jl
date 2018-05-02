@@ -37,12 +37,12 @@ function oa_formulation_bm(ℓ::LossFunction, Y, X, k::Int, γ;
   #Info array
 
   miop = Model(solver=GurobiSolver(MIPGap=Gap, TimeLimit=ΔT_max,
-                OutputFlag=1*verbose, LazyConstraints=1, Threads=getthreads()))
+                OutputFlag=1*verbose, LazyConstraints=1))
 
   miop.ext[:heuristics_data] = # create storage
 
   s0 = zeros(p); s0[indices0]=1
-  c0, ∇c0 = inner_op(ℓ, Y, X, s0, γ)
+  c0, ∇c0 = SubsetSelectionCIO.inner_op(ℓ, Y, X, s0, γ)
 
   # Optimization variables
   @variable(miop, s[j=1:p], Bin, start=s0[j])
@@ -68,7 +68,7 @@ function oa_formulation_bm(ℓ::LossFunction, Y, X, k::Int, γ;
   end
   addlazycallback(miop, outer_approximation)
   function myheuristic(cb)
-    _, ∇c = inner_op(ℓ, Y, X, getvalue(s), γ)
+    _, ∇c = SubsetSelectionCIO.inner_op(ℓ, Y, X, getvalue(s), γ)
     order = sortperm(∇c)
     promising_indices = collect(1:p)[order[1:k]]
     # hsolution = zeros(Int, p)

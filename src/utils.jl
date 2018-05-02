@@ -82,6 +82,12 @@ end
 function Base.mkdir(bd::BenchmarkData)
     mkdir(data2str(bd))
 end
+function method2str(m::RegressionMethod)
+    error("You need to define `method2str` for $m.")
+end
 function method2str(m::ExactPrimalCuttingPlane)
     "exact_primal_tlimit_$(m.time_limit)"
+end
+function method2str(m::PrimalWithHeuristics)
+    "node_heuristics_primal_tlimit_$(m.time_limit)"
 end
