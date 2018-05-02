@@ -54,7 +54,7 @@ end
         bd = BenchmarkData(Xdata = Xdata, wdist = BinChoice(),
             noisedist = NoNoise(), SNR = 0.0, n = n, nfeatures = d,
             sparsity = sparsity)
-        @test RegressionBenchmarks.data2str(bd) ==
+        @test data2str(bd) ==
             "x_normal_corr_rho_0.1_w_binchoice_noise_nonoise_snr_0.0_d_$(d)_k_$(sparsity)"
     end
 end

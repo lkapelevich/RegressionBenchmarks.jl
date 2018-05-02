@@ -82,3 +82,6 @@ end
 function Base.mkdir(bd::BenchmarkData)
     mkdir(data2str(bd))
 end
+function method2str(m::ExactPrimalCuttingPlane)
+    "exact_primal_tlimit_$(m.time_limit)"
+end

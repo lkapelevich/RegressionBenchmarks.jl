@@ -31,8 +31,9 @@ results_table = benchmark(bd, m)
 # Save
 resdir = joinpath(Pkg.dir("RegressionBenchmarks"), "results")
 !isdir(resdir) && mkdir(resdir)
-datadir = joinpath(resdir, RegressionBenchmarks.data2str(bd))
-!isdir(datadir) && mkdir(datadir)
+tstamp = round(Int64, time() * 1000)
+datadir = joinpath(resdir, data2str(bd), method2str(m), "$(tstamp)")
+!ispath(datadir) && mkpath(datadir)
 df = convert(DataFrame, results_table)
 colnames = [:accuracy, :false_detection, :train_r2, :test_r2, :time, :gamma]
 names!(df, colnames)

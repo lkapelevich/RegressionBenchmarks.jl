@@ -15,7 +15,7 @@ function benchmark(bd::BenchmarkData, method::RegressionMethod)
         for ((X_train, y_train), (X_test, y_test)) in folds
             # Validate the right method parameters
             X_train, X_test = X_train', X_test'
-            validate_params!(X_train, y_train, bd.sparsity, method)
+            v_results = validate_params!(X_train, y_train, bd.sparsity, method)
             tic()
             indices, w = solve_problem(method, X_train, y_train, bd.sparsity)
             time = toq()
