@@ -56,6 +56,9 @@ end
             sparsity = sparsity)
         @test data2str(bd) ==
             "x_normal_corr_rho_0.1_w_binchoice_noise_nonoise_snr_0.0_d_$(d)_k_$(sparsity)"
+        m = RelaxDualSubgradient(5.0, PolyakStepping(2.0, 30), 100)
+        @test method2str(m) ==
+            "relax_dual_subgradient_polyak_2.0_maxiter_100"
     end
 end
 
