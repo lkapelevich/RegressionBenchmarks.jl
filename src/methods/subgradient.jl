@@ -29,7 +29,6 @@ function getdelta(sr::PolyakStepping, Y, X, α::Vector{Float64}, ∇::Vector{Flo
   lower_bound = dual_bound(SubsetSelection.OLS(), Y, X, α, indices, n_indices, γ, cache)
   upper_bound = primal_bound(SubsetSelection.OLS(), Y, X, γ, indices, n_indices)
   (upper_bound < best_upper) && (best_upper = upper_bound)
-  @show lower_bound, upper_bound
   @assert lower_bound <= upper_bound
   sr.initial_factor * (best_upper - lower_bound) / sum(abs2.(∇))
 end
@@ -61,7 +60,7 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
     indInit = SubsetSelection.ind_init(Card, size(X,2)),
     αInit = SubsetSelection.alpha_init(ℓ, Y),
     γ = 1/sqrt(size(X,1)),  intercept = false,
-    maxIter = 100, sr::SteppingRule = ConstantStepping(1e-3), gradUp = 10,
+    maxIter = 100, sr::SteppingRule = ConstantStepping(1e-3), gradUp = 1,
     anticycling = false, averaging = true)
 
   n,p = size(X)
@@ -102,7 +101,6 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
     for inner_iter in 1:min(gradUp, div(p, n_indices))
       ∇ = SubsetSelection.grad_dual(ℓ, Y, X, α, indices, n_indices, γ, cache)
       δ = getdelta(sr, Y, X, α, ∇, indices, n_indices, γ, cache, best_upper)
-      @show δ
       α .+= δ*∇
       α = SubsetSelection.proj_dual(ℓ, Y, α)
       α = SubsetSelection.proj_intercept(intercept, α)
