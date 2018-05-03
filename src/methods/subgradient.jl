@@ -1,6 +1,15 @@
 # This file constains code copied from https://github.com/jeanpauphilet/SubsetSelection.jl
 # as at commit e6b3258ba394f6152853498d81d3cecb9d67e097
 
+const sgtol = 1e-6
+
+mutable struct PolyakCache
+  best_inds::Vector{Int}
+  best_upper::Float64
+  best_lower::Float64
+end
+PolyakCache(inds::Vector{Int}) = PolyakCache(inds, Inf, -Inf)
+
 abstract type SteppingRule end
 struct ConstantStepping <: SteppingRule
   stepsize::Float64
@@ -18,19 +27,24 @@ mutable struct PolyakStepping <: SteppingRule
   end
 end
 
-function getdelta(sr::SteppingRule, ::Any, ::Any, ::Vector{Float64}, ::Vector{Float64}, ::Vector{Int}, ::Int, ::Float64, ::SubsetSelection.Cache, ::Float64)
+function getdelta!(sr::SteppingRule, ::Any, ::Any, ::Vector{Float64}, ::Vector{Float64}, ::Vector{Int}, ::Int, ::Float64, ::SubsetSelection.Cache, ::PolyakCache)
   error("Need to define `getdelta` for stepping rule $(sr).")
 end
-function getdelta(sr::ConstantStepping, ::Any, ::Any, ::Vector{Float64}, ::Vector{Float64}, ::Vector{Int}, ::Int, ::Float64, ::SubsetSelection.Cache, ::Float64)
+function getdelta!(sr::ConstantStepping, ::Any, ::Any, ::Vector{Float64}, ::Vector{Float64}, ::Vector{Int}, ::Int, ::Float64, ::SubsetSelection.Cache, ::PolyakCache)
   sr.stepsize
 end
-function getdelta(sr::PolyakStepping, Y, X, α::Vector{Float64}, ∇::Vector{Float64},
-      indices::Vector{Int}, n_indices::Int, γ::Float64, cache::SubsetSelection.Cache, best_upper::Float64)
+function getdelta!(sr::PolyakStepping, Y, X, α::Vector{Float64}, ∇::Vector{Float64},
+      indices::Vector{Int}, n_indices::Int, γ::Float64, cache::SubsetSelection.Cache, pc::PolyakCache)
   lower_bound = dual_bound(SubsetSelection.OLS(), Y, X, α, indices, n_indices, γ, cache)
   upper_bound = primal_bound(SubsetSelection.OLS(), Y, X, γ, indices, n_indices)
-  (upper_bound < best_upper) && (best_upper = upper_bound)
-  @assert lower_bound <= upper_bound
-  sr.initial_factor * (best_upper - lower_bound) / sum(abs2.(∇))
+  @show lower_bound, pc.best_upper, upper_bound
+  if upper_bound < pc.best_upper
+    pc.best_upper = upper_bound
+    pc.best_inds .= indices
+  end
+  (lower_bound > pc.best_lower) && (pc.best_lower = lower_bound)
+  @assert lower_bound - sgtol <= upper_bound + sgtol
+  sr.initial_factor * (pc.best_upper - lower_bound) / sum(abs2.(∇))
 end
 
 ##############################################
@@ -82,6 +96,7 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
 
   indices = indInit #Support
   n_indices = length(indices)
+  best_inds = copy(indices)
 
   n_indices_max = SubsetSelection.max_index_size(Card, p)
   resize!(indices, n_indices_max)
@@ -90,9 +105,9 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
   α = αInit[:]  #Dual variable α
   a = αInit[:]  #Past average of α
 
-  lower_bound = -Inf
-  upper_bound =  Inf
-  best_upper = Inf
+  pc = PolyakCache(copy(indices))
+
+  bounds_match = false
 
   ##Dual Sub-gradient Algorithm
   for iter in 2:maxIter
@@ -100,7 +115,7 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
     #Gradient ascent on α
     for inner_iter in 1:min(gradUp, div(p, n_indices))
       ∇ = SubsetSelection.grad_dual(ℓ, Y, X, α, indices, n_indices, γ, cache)
-      δ = getdelta(sr, Y, X, α, ∇, indices, n_indices, γ, cache, best_upper)
+      δ = getdelta!(sr, Y, X, α, ∇, indices, n_indices, γ, cache, pc)
       α .+= δ*∇
       α = SubsetSelection.proj_dual(ℓ, Y, α)
       α = SubsetSelection.proj_intercept(intercept, α)
@@ -120,6 +135,11 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
     #Anticycling rule: Stop if indices_old == indices
     if anticycling && SubsetSelection.indices_same(indices, indices_old, n_indices)
       averaging = false #If the algorithm stops because of cycling, averaging is not needed
+      break
+    end
+    # If lower and upper bounds have closed, skip to the end
+    if abs(pc.best_upper - pc.best_lower) / (1 + abs(pc.best_upper)) < 1e-4
+      indices .= pc.best_inds
       break
     end
   end
