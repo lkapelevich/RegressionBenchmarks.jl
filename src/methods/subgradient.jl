@@ -15,19 +15,23 @@ mutable struct PolyakStepping <: SteppingRule
           error("Initial stepping parameter must be between 0 and 2. Current
                     choice is $initial_factor.")
       end
+  end
 end
 
-function getdelta(sr::SteppingRule, ::Vector{Float64})
+function getdelta(sr::SteppingRule, ::Any, ::Any, ::Vector{Float64}, ::Vector{Float64}, ::Vector{Int}, ::Int, ::Float64, ::SubsetSelection.Cache, ::Float64)
   error("Need to define `getdelta` for stepping rule $(sr).")
 end
-function getdelta(sr::ConstantStepping, Y, X, ::Vector{Float64}, indices::Vector{Int}, γ::Float64, cache::SubsetSelection.Cache)
+function getdelta(sr::ConstantStepping, ::Any, ::Any, ::Vector{Float64}, ::Vector{Float64}, ::Vector{Int}, ::Int, ::Float64, ::SubsetSelection.Cache, ::Float64)
   sr.stepsize
 end
-function getdelta(sr::PolyakStepping, Y, X, α::Vector{Float64}, indices::Vector{Int}, γ::Float64, cache::SubsetSelection.Cache)
-  lower_bound = dual_bound(SubsetSelection.OLS(), Y, X, α, indices, γ, cache)
-  upper_bound = primal_bound(SubsetSelection.OLS(), Y, X, γ, indices)
+function getdelta(sr::PolyakStepping, Y, X, α::Vector{Float64}, ∇::Vector{Float64},
+      indices::Vector{Int}, n_indices::Int, γ::Float64, cache::SubsetSelection.Cache, best_upper::Float64)
+  lower_bound = dual_bound(SubsetSelection.OLS(), Y, X, α, indices, n_indices, γ, cache)
+  upper_bound = primal_bound(SubsetSelection.OLS(), Y, X, γ, indices, n_indices)
+  (upper_bound < best_upper) && (best_upper = upper_bound)
+  @show lower_bound, upper_bound
   @assert lower_bound <= upper_bound
-  sr.initial_factor * (upper_bound - lower_bound) / sum(abs2.(α))
+  sr.initial_factor * (best_upper - lower_bound) / sum(abs2.(∇))
 end
 
 ##############################################
@@ -89,6 +93,7 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
 
   lower_bound = -Inf
   upper_bound =  Inf
+  best_upper = Inf
 
   ##Dual Sub-gradient Algorithm
   for iter in 2:maxIter
@@ -96,7 +101,8 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
     #Gradient ascent on α
     for inner_iter in 1:min(gradUp, div(p, n_indices))
       ∇ = SubsetSelection.grad_dual(ℓ, Y, X, α, indices, n_indices, γ, cache)
-      δ = getdelta(sr, Y, X, α, indices, γ, cache)
+      δ = getdelta(sr, Y, X, α, ∇, indices, n_indices, γ, cache, best_upper)
+      @show δ
       α .+= δ*∇
       α = SubsetSelection.proj_dual(ℓ, Y, α)
       α = SubsetSelection.proj_intercept(intercept, α)
@@ -135,25 +141,26 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
   return SubsetSelection.SparseEstimator(ℓ, Card, indices, w, a, b, maxIter)
 end
 
-function ax_squared(X, α::Vector{Float64}, indices::Vector{Int})
-  # TODO update ax in cache and use it
+function ax_squared(X, α::Vector{Float64}, indices::Vector{Int}, n_indices::Int)
+  # TODO update ax in cache and use it rather than recomputing
   axsum = 0.0
-  for j in indices
+  for j = 1:n_indices
     axsum += dot(α, X[:, indices[j]])^2
   end
   axsum
 end
 
-function primal_bound(ℓ::SubsetSelection.OLS, Y, X, γ, indices::Vector{Int})
+function primal_bound(ℓ::SubsetSelection.OLS, Y, X, γ, indices::Vector{Int}, n_indices::Int)
   αstar = SubsetSelectionCIO.sparse_inverse(ℓ, Y, X, γ) # TODO could do this less often
-  bound = -0.5 * dot(αstar, αstar) + dot(Y, αstar) - γ * 0.5 * axsum
-  # Normalize
-  bound / size(X, 1)
+  axsum = ax_squared(X, αstar, indices, n_indices)
+  bound = -0.5 * dot(αstar, αstar) - dot(Y, αstar) - γ * 0.5 * axsum
+  # Normalize TODO normalize this and grad dual
+  # bound / size(X, 1)
 end
 
-function dual_bound(ℓ::SubsetSelection.OLS, Y, X, α, indices, γ, cache::SubsetSelection.Cache)
-  axsum = ax_squared(X, α, indices)
-  bound = -0.5 * dot(α, α) + dot(Y, α) - γ * 0.5 * axsum
+function dual_bound(ℓ::SubsetSelection.OLS, Y, X, α::Vector{Float64}, indices::Vector{Int}, n_indices::Int, γ, cache::SubsetSelection.Cache)
+  axsum = ax_squared(X, α, indices, n_indices)
+  bound = -0.5 * dot(α, α) - dot(Y, α) - γ * 0.5 * axsum
   # Normalize
-  bound / size(X, 1)
+  # bound / size(X, 1)
 end

@@ -68,14 +68,14 @@ end
         @testset "Ordinary" begin
             m = RelaxDualSubgradient(5.0, ConstantStepping(1e-3), 100)
             indices, weights = solve_problem(m, rd.X, rd.Y, sparsity)
-            @test indices == find(abs(w) .> 1e-6)
-            @test isapprox(weights, w[abs(w) .> 1e-6], atol = 1e-1)
+            @test indices == find(abs.(w) .> 1e-6)
+            @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)
         end
         @testset "Varying stepsizes" begin
             m = RelaxDualSubgradient(5.0, PolyakStepping(2.0, 30), 100)
             indices, weights = solve_problem(m, rd.X, rd.Y, sparsity)
-            @test indices == find(abs(w) .> 1e-6)
-            @test isapprox(weights, w[abs(w) .> 1e-6], atol = 1e-1)
+            @test indices == find(abs.(w) .> 1e-6)
+            @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)
         end
     end
 end
