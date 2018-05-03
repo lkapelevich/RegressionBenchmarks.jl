@@ -56,5 +56,29 @@ end
             sparsity = sparsity)
         @test data2str(bd) ==
             "x_normal_corr_rho_0.1_w_binchoice_noise_nonoise_snr_0.0_d_$(d)_k_$(sparsity)"
+        m = RelaxDualSubgradient(5.0, PolyakStepping(2.0, 30), 100)
+        @test method2str(m) ==
+            "relax_dual_subgradient_polyak_2.0_maxiter_100"
+    end
+end
+
+@testset "Methods" begin
+    srand(1)
+    bd = BenchmarkData(Xdata = Xdata, wdist = BinChoice(),
+        noisedist = NoNoise(), SNR = 0.0, n = n, nfeatures = d, sparsity = sparsity)
+    rd = getdata(bd, 1)
+    @testset "Subgradient" begin
+        @testset "Ordinary" begin
+            m = RelaxDualSubgradient(5.0, ConstantStepping(1e-3), 100)
+            indices, weights = solve_problem(m, rd.X, rd.Y, sparsity)
+            @test indices == find(abs.(w) .> 1e-6)
+            @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)
+        end
+        @testset "Varying stepsizes" begin
+            m = RelaxDualSubgradient(5.0, PolyakStepping(2.0, 30), 100)
+            indices, weights = solve_problem(m, rd.X, rd.Y, sparsity)
+            @test indices == find(abs.(w) .> 1e-6)
+            @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)
+        end
     end
 end

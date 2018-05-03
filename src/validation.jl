@@ -22,7 +22,7 @@ function validate_params!(X::Array{Float64,2}, Y, sparsity::Int, m::GammaMethods
 
     # Range of gammas we are going to validate # TODO make input
     n = size(X, 2)
-    gamma_range = sqrt(n) ./ 2.^collect(0:10)
+    gamma_range = 1 / sqrt(n) .* 2.^collect(0:10)
     nvals = length(gamma_range)
 
     # Cache the methods with what we are validating in case we want to save to
