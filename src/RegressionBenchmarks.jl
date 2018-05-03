@@ -1,17 +1,24 @@
 module RegressionBenchmarks
 
 using StatsBase, Distributions, SubsetSelection, SubsetSelectionCIO,
-      MLDataUtils, JuMP, Gurobi
+      MLDataUtils, JuMP, Gurobi, CPLEX
 using Gadfly, DataFrames
 import Base.rand #, Base.normalize!
 import Base.mkdir
 
 export BinChoice, NoNoise, MatrixCorrelation, NoCorrelation,
     getw, getX, getdata, BenchmarkData, XData,
+    # Methods
     RegressionMethod, ExactPrimalCuttingPlane, PrimalWithHeuristics,
+    RelaxDualSubgradient,
+    # Parts of methods
+    ConstantStepping, PolyakStepping,
+    # Validate and solve
     validate_params!,
     solve_problem,
+    # Utilities
     isRsquared, oosRsquared, accuracy, falsepositive, predict_sparse,
+    # Results
     benchmark, makeplot,
     data2str, method2str #,
     # normalize!
