@@ -87,6 +87,9 @@ function XData(::Type{MvNormal}, c::MatrixCorrelation, d::Int)
     end
     XData(MvNormal(zeros(d), Σ), c)
 end
+function XData(::Type{Uniform}, c::NoCorrelation, ::Int)
+    XData(Uniform(), c)
+end
 
 function getw(d::Int, k::Int, wdist::BenchmarkwDists)
     w = zeros(d)

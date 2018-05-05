@@ -1,22 +1,3 @@
-# X Uniform
-
-# X Normal
-
-
-# Vary autocorrelation
-
-# Vary noise
-
-# W uniform
-
-
-# W normal
-
-
-# W multichoice
-
-# logistic regression rather than regression
-
 mutable struct RegressionData
     X::Array{Float64,2}
     Y::Vector{Float64}
