@@ -92,7 +92,7 @@ function method2str(m::PrimalWithHeuristics)
     "node_heuristics_primal_tlimit_$(m.time_limit)"
 end
 function stepping2str(sr::ConstantStepping)
-  "conststep_$(sr.step_size)_maxiter_$(m.maxiter)"
+  "conststep_$(sr.stepsize)"
 end
 function stepping2str(sr::PolyakStepping)
   "polyak_$(sr.initial_factor)"
