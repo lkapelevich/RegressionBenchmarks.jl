@@ -82,3 +82,14 @@ end
         end
     end
 end
+
+@testset "Validation" begin
+    srand(1)
+    bd = BenchmarkData(Xdata = Xdata, wdist = BinChoice(),
+        noisedist = NoNoise(), SNR = 0.0, n = n, nfeatures = d, sparsity = sparsity)
+    rd = getdata(bd, 1)
+    for method in [ExactPrimalCuttingPlane(); PrimalWithHeuristics(); RelaxDualSubgradient()]
+        v_results = validate_params!(rd.X, rd.Y, bd.sparsity, method)
+        @test any(isapprox.(v_results.valid_scores, 1.0, atol=1e-2))
+    end
+end

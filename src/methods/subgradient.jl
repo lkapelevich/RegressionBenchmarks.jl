@@ -37,7 +37,6 @@ function getdelta!(sr::PolyakStepping, Y, X, α::Vector{Float64}, ∇::Vector{Fl
       indices::Vector{Int}, n_indices::Int, γ::Float64, cache::SubsetSelection.Cache, pc::PolyakCache)
   lower_bound = dual_bound(SubsetSelection.OLS(), Y, X, α, indices, n_indices, γ, cache)
   upper_bound = primal_bound(SubsetSelection.OLS(), Y, X, γ, indices, n_indices)
-  @show lower_bound, pc.best_upper, upper_bound
   if upper_bound < pc.best_upper
     pc.best_upper = upper_bound
     pc.best_inds .= indices

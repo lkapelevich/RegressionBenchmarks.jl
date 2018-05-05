@@ -3,25 +3,32 @@ mutable struct ValidationResults{T <: RegressionMethod}
     train_scores::Vector{Float64}
     valid_scores::Vector{Float64}
 end
+ValidationResults(m::RegressionMethod) = ValidationResults(m, Float64[], Float64[])
 
 function validate_params!(bd::BenchmarkData, m::RegressionMethod)
     error("No validation method for $m.")
 end
 
-const GammaMethods = Union{ExactPrimalCuttingPlane, PrimalWithHeuristics}
+const GammaMethods = Union{ExactPrimalCuttingPlane, PrimalWithHeuristics, RelaxDualSubgradient}
 
 """
-    validate_params!(X::Array{Float64,2}, Y, sparsity::Int, m::GammaMethods)
+    validate_params!(X::Array{Float64,2},
+                    Y::Union{Vector{Float64},SubArray{Float64}},
+                    sparsity::Int,
+                    m::GammaMethods)
 
 Just need to validate gamma.
 """
-function validate_params!(X::Array{Float64,2}, Y, sparsity::Int, m::GammaMethods)
+function validate_params!(X::Array{Float64,2},
+                        Y::Union{Vector{Float64},SubArray{Float64}},
+                        sparsity::Int,
+                        m::GammaMethods)
 
     nfolds = 10
     folds = kfolds(shuffleobs((X', Y)), k = nfolds)
 
     # Range of gammas we are going to validate # TODO make input
-    n = size(X, 2)
+    n = size(X, 1)
     gamma_range = 1 / sqrt(n) .* 2.^collect(0:10)
     nvals = length(gamma_range)
 
@@ -68,4 +75,16 @@ function validate_params!(X::Array{Float64,2}, Y, sparsity::Int, m::GammaMethods
     v_results.valid_scores ./= nfolds
     m.gamma = mean(best_gammas)
     v_results
+end
+
+function valid2io(io::IO, vresults::Array{ValidationResults,2}, nrange::Vector{Int})
+    @assert length(nrange) == size(vresults, 1)
+    write(io, "test_fold, n, gamma, mean_train_score, mean_valid_score \n")
+    for j = 1:size(vresults, 2)
+        for i = 1:length(nrange)
+            for k = 1:length(vresults[i, j].m_with_params)
+              write(io, "$j, $(nrange[i]), $(vresults[i, j].m_with_params[k].gamma), $(vresults[i, j].train_scores[k]), $(vresults[i, j].valid_scores[k]) \n")
+            end
+        end
+    end
 end

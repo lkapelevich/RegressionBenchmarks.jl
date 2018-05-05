@@ -27,7 +27,7 @@ bd = BenchmarkData(Xdata = Xdata,
 # Choose model
 m = PrimalWithHeuristics()
 # Get results
-results_table = benchmark(bd, m)
+results_table, val_results = benchmark(bd, m)
 # Save
 resdir = joinpath(Pkg.dir("RegressionBenchmarks"), "results")
 !isdir(resdir) && mkdir(resdir)
@@ -38,7 +38,11 @@ df = convert(DataFrame, results_table)
 colnames = [:accuracy, :false_detection, :train_r2, :test_r2, :time, :gamma]
 names!(df, colnames)
 insert!(df, 1, nrange, :nrange)
-writetable(joinpath(datadir, "sparsity$(sparsity).csv"), df)
+writetable(joinpath(datadir, "sparsity$(sparsity)_results.csv"), df)
+# Archive validation results also
+open(joinpath(datadir, "sparsity$(sparsity)_validation.csv"), "w") do io
+    RegressionBenchmarks.valid2io(io, val_results, nrange)
+end
 # Make plots
 for field in ["accuracy", "false_detection", "test_r2", "time"]
     makeplot(datadir, field, df, sparsity)
