@@ -27,6 +27,13 @@ mutable struct PolyakStepping <: SteppingRule
   end
 end
 
+function resetindices(::PolyakStepping)
+  true
+end
+function resetindices(::SteppingRule)
+  false
+end
+
 function getdelta!(sr::SteppingRule, ::Any, ::Any, ::Vector{Float64}, ::Vector{Float64}, ::Vector{Int}, ::Int, ::Float64, ::SubsetSelection.Cache, ::PolyakCache)
   error("Need to define `getdelta` for stepping rule $(sr).")
 end
@@ -42,7 +49,9 @@ function getdelta!(sr::PolyakStepping, Y, X, α::Vector{Float64}, ∇::Vector{Fl
     pc.best_inds .= indices
   end
   (lower_bound > pc.best_lower) && (pc.best_lower = lower_bound)
-  @assert lower_bound - sgtol <= upper_bound + sgtol
+  if lower_bound - sgtol > upper_bound + sgtol
+      error("Bounds overlap. LB = $lowerbound and UB = $upper_bound.")
+  end
   sr.initial_factor * (pc.best_upper - lower_bound) / sum(abs2.(∇))
 end
 
@@ -104,6 +113,11 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
   α = αInit[:]  #Dual variable α
   a = αInit[:]  #Past average of α
 
+  # We will compute the dual bound incorrectly unless indicies match initial α
+  if resetindices(sr)
+    n_indices = SubsetSelection.partial_min!(indices, Card, X, α, γ, cache)
+  end
+
   pc = PolyakCache(copy(indices))
 
   bounds_match = false
@@ -112,7 +126,7 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity, Y, X;
   for iter in 2:maxIter
 
     #Gradient ascent on α
-    for inner_iter in 1:min(gradUp, div(p, n_indices))
+    for _ in 1:min(gradUp, div(p, n_indices))
       ∇ = SubsetSelection.grad_dual(ℓ, Y, X, α, indices, n_indices, γ, cache)
       δ = getdelta!(sr, Y, X, α, ∇, indices, n_indices, γ, cache, pc)
       α .+= δ*∇
@@ -168,7 +182,7 @@ function ax_squared(X, α::Vector{Float64}, indices::Vector{Int}, n_indices::Int
 end
 
 function primal_bound(ℓ::SubsetSelection.OLS, Y, X, γ, indices::Vector{Int}, n_indices::Int)
-  αstar = SubsetSelectionCIO.sparse_inverse(ℓ, Y, X, γ) # TODO could do this less often
+  αstar = SubsetSelectionCIO.sparse_inverse(ℓ, Y, X[:, indices], γ) # TODO could do this less often. also don't return vector after function.
   axsum = ax_squared(X, αstar, indices, n_indices)
   bound = -0.5 * dot(αstar, αstar) - dot(Y, αstar) - γ * 0.5 * axsum
   # Normalize TODO normalize this and grad dual
