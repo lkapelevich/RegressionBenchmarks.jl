@@ -75,7 +75,7 @@ end
             @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)
         end
         @testset "Varying stepsizes" begin
-            m = RelaxDualSubgradient(5.0, PolyakStepping(2.0, 30), 100)
+            m = RelaxDualSubgradient(50.0, PolyakStepping(0.5, 30), 100)
             indices, weights = solve_problem(m, rd.X, rd.Y, sparsity)
             @test indices == find(abs.(w) .> 1e-6)
             @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)
@@ -88,8 +88,12 @@ end
     bd = BenchmarkData(Xdata = Xdata, wdist = BinChoice(),
         noisedist = NoNoise(), SNR = 0.0, n = n, nfeatures = d, sparsity = sparsity)
     rd = getdata(bd, 1)
-    for method in [ExactPrimalCuttingPlane(); PrimalWithHeuristics(); RelaxDualSubgradient()]
+    for method in [ExactPrimalCuttingPlane(); PrimalWithHeuristics();
+          RelaxDualSubgradient(); RelaxDualSubgradient(50.0, PolyakStepping(), 100)]
         v_results = validate_params!(rd.X, rd.Y, bd.sparsity, method)
         @test any(isapprox.(v_results.valid_scores, 1.0, atol=1e-2))
+        if isa(method, Union{ExactPrimalCuttingPlane, PrimalWithHeuristics})
+            @test method.time_limit == 30.0
+        end
     end
 end

@@ -30,9 +30,9 @@ PrimalWithHeuristics() = PrimalWithHeuristics(0.0, 30.0)
 
 Use subgradient descent on the dual of the convex relaxation.
 """
-mutable struct RelaxDualSubgradient <: RegressionMethod
+mutable struct RelaxDualSubgradient{SR <: SteppingRule} <: RegressionMethod
     gamma::Float64
-    sr::SteppingRule
+    sr::SR
     maxiter::Int
 end
 RelaxDualSubgradient() = RelaxDualSubgradient(0.0, ConstantStepping(1e-3), 100)

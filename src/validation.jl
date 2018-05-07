@@ -9,7 +9,51 @@ function validate_params!(bd::BenchmarkData, m::RegressionMethod)
     error("No validation method for $m.")
 end
 
+function settimelimit!(m::Union{ExactPrimalCuttingPlane, PrimalWithHeuristics}, t::Float64)
+    old_tl = m.time_limit
+    m.time_limit = t
+    old_tl
+end
+function settimelimit!(::RelaxDualSubgradient, ::Float64)
+    0.0
+end
+
 const GammaMethods = Union{ExactPrimalCuttingPlane, PrimalWithHeuristics, RelaxDualSubgradient}
+
+function validate_stepsize!(::RegressionMethod,
+                                ::Array{Float64,2},
+                                ::Union{Vector{Float64},SubArray{Float64}},
+                                ::Array{Float64,2},
+                                ::Union{Vector{Float64},SubArray{Float64}},
+                                ::Int
+                            )
+    nothing
+end
+
+function validate_stepsize!(m::RelaxDualSubgradient{SR},
+                                X_train::Array{Float64,2},
+                                Y_train::Union{Vector{Float64},SubArray{Float64}},
+                                X_valid::Array{Float64,2},
+                                Y_valid::Union{Vector{Float64},SubArray{Float64}},
+                                sparsity::Int
+                            ) where {SR <: PolyakStepping}
+
+    best_score = -Inf
+    best_if = 0.5
+    ifrange = [0.5, 1.0, 2.0]
+    for initial_factor in ifrange
+        m.sr.initial_factor = initial_factor
+        indices, w = solve_problem(m, X_train, Y_train, sparsity)
+        pred = predict_sparse(X_valid, indices, w)
+        valid_score = oosRsquared(pred, Y_valid, Y_train)
+        if valid_score > best_score
+            best_score = valid_score
+            best_if = initial_factor
+        end
+    end
+    m.sr.initial_factor = best_if
+    nothing
+end
 
 """
     validate_params!(X::Array{Float64,2},
@@ -45,6 +89,8 @@ function validate_params!(X::Array{Float64,2},
     # Gammas giving highest validation score in each fold
     best_gammas = zeros(nfolds)
 
+    old_tl = settimelimit!(m, 60.0)
+
     # Validate over all folds in the data
     fold = 1
     for ((X_train, Y_train), (X_valid, Y_valid)) in folds
@@ -52,6 +98,8 @@ function validate_params!(X::Array{Float64,2},
         best_score = -Inf
         for (i, f) in enumerate(gamma_range)
             m.gamma = f
+            # If relevant, find the best scaling factor for varying stepsizes
+            validate_stepsize!(m, X_train, Y_train, X_valid, Y_valid, sparsity)
             # Solve the problem
             indices, w = solve_problem(m, X_train, Y_train, sparsity)
             # Make in sample and out of sample predictions
@@ -71,6 +119,7 @@ function validate_params!(X::Array{Float64,2},
         end
         fold += 1
     end
+    settimelimit!(m, old_tl)
     v_results.train_scores ./= nfolds
     v_results.valid_scores ./= nfolds
     m.gamma = mean(best_gammas)

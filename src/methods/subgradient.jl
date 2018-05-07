@@ -26,6 +26,7 @@ mutable struct PolyakStepping <: SteppingRule
       end
   end
 end
+PolyakStepping() = PolyakStepping(2.0, 30)
 
 function resetindices(::PolyakStepping)
   true
