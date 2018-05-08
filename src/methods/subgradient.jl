@@ -183,7 +183,8 @@ function ax_squared(X, α::Vector{Float64}, indices::Vector{Int}, n_indices::Int
   # TODO update ax in cache and use it rather than recomputing
   axsum = 0.0
   for j = 1:n_indices
-    axsum += dot(α, X[:, indices[j]])^2
+    x = @view(X[:, indices[j]])
+    axsum += dot(α, x)^2
   end
   axsum
 end
