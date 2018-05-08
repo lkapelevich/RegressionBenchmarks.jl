@@ -66,8 +66,8 @@ RelaxDualSubgradient() = RelaxDualSubgradient(0.0, ConstantStepping(1e-3), 100)
     RelaxDualCutting
 """
 mutable struct RelaxDualCutting
-    solver::MathProgBase.AbstractMathProgSolver
     gamma::Float64
+    solver::MathProgBase.AbstractMathProgSolver
 end
 RelaxDualCutting() = RelaxDualCutting(0.0)
 

@@ -23,7 +23,7 @@ export BinChoice, NoNoise, MatrixCorrelation, NoCorrelation,
     data2str, method2str #,
     # normalize!
 
-const YVector = Union{Vector{Float64},SubArray{Float64}}
+const YVector = Union{Vector{Float64},SubArray{Float64,1}}
 
 include("datatypes.jl")
 include("data.jl")

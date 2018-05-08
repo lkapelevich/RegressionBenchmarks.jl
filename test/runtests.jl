@@ -65,6 +65,21 @@ end
     end
 end
 
+@testset "getslope!" begin
+    ∇ = zeros(n[1])
+    α = 0.1 * ones(n[1])
+    ax = X[:, 1:sparsity]' * α
+    inds = collect(1:sparsity)
+    γ = 5.0
+    c = SubsetSelection.Cache(n[1], d)
+    RegressionBenchmarks.getslope!(∇, X, Y, α, inds, γ, sparsity, ax)
+    g = SubsetSelection.grad_dual(SubsetSelection.OLS(), Y, X, -α, inds, sparsity, γ, c)
+    @test ∇ ≈ -g
+    db = RegressionBenchmarks.dual_bound(SubsetSelection.OLS(), Y, X, -α, inds, sparsity, γ, c)
+    lb = RegressionBenchmarks.getlb(Y, α, ax, γ)
+    @test db ≈ lb
+end
+
 @testset "Methods" begin
     srand(1)
     bd = BenchmarkData(Xdata = Xdata, wdist = BinChoice(),
@@ -83,6 +98,13 @@ end
             @test indices == find(abs.(w) .> 1e-6)
             @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)
         end
+    end
+    @testset "Dual cutting planes" begin
+        lpsolver = GurobiSolver(OutputFlag = 0)
+        m = RelaxDualCutting(500.0, lpsolver)
+        indices, weights = solve_problem(m, rd.X, rd.Y, sparsity)
+        @test indices == find(abs.(w) .> 1e-6)
+        @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)
     end
 end
 
