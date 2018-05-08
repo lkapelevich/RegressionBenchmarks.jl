@@ -10,7 +10,7 @@ export BinChoice, NoNoise, MatrixCorrelation, NoCorrelation,
     getw, getX, getdata, BenchmarkData, XData,
     # Methods
     RegressionMethod, ExactPrimalCuttingPlane, PrimalWithHeuristics,
-    RelaxDualSubgradient,
+    RelaxDualSubgradient, RelaxDualCutting,
     # Parts of methods
     ConstantStepping, PolyakStepping,
     # Validate and solve

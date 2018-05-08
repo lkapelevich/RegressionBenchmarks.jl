@@ -62,6 +62,13 @@ mutable struct RelaxDualSubgradient{SR <: SteppingRule} <: RegressionMethod
 end
 RelaxDualSubgradient() = RelaxDualSubgradient(0.0, ConstantStepping(1e-3), 100)
 
+"""
+    RelaxDualCutting
+"""
+mutable struct RelaxDualCutting
+    gamma::Float64
+end
+RelaxDualCutting() = RelaxDualCutting(0.0)
 
 function solve_problem(m::ExactPrimalCuttingPlane, X::Array{Float64,2}, Y, sparsity::Int)
     indices0, w0, Δt, status, Gap, cutCount = oa_formulation_bm(SubsetSelection.OLS(), Y, X, sparsity, m.gamma, m.solver)
