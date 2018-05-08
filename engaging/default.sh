@@ -2,7 +2,9 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=16G
 #SBATCH --partition=sched_mit_sloan_batch
-#SBATCH --time=1-00:00
-#SBATCH -o /home/lkap/research/logs/mlhw_%j.out
+#SBATCH --time=4-00:00
+#SBATCH -o /home/lkap/research/logs/regression_%j.out
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=leakapelevich@gmail.com
 module load julia
 srun julia engaging.jl
