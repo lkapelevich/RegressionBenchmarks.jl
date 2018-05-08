@@ -1,4 +1,4 @@
-using RegressionBenchmarks
+using RegressionBenchmarks, Gurobi
 using Base.Test, Distributions
 
 srand(1)
@@ -59,6 +59,9 @@ end
         m = RelaxDualSubgradient(5.0, PolyakStepping(2.0, 30), 100)
         @test method2str(m) ==
             "relax_dual_subgradient_polyak_2.0_maxiter_100"
+        m = ExactPrimalCuttingPlane(0.1, 30.0, GurobiSolver)
+        @test method2str(m) ==
+            "exact_primal_tlimit_30.0_gurobi"
     end
 end
 
@@ -88,8 +91,11 @@ end
     bd = BenchmarkData(Xdata = Xdata, wdist = BinChoice(),
         noisedist = NoNoise(), SNR = 0.0, n = n, nfeatures = d, sparsity = sparsity)
     rd = getdata(bd, 1)
-    for method in [ExactPrimalCuttingPlane(); PrimalWithHeuristics();
-          RelaxDualSubgradient(); RelaxDualSubgradient(50.0, PolyakStepping(), 100)]
+    for method in [ExactPrimalCuttingPlane(GurobiSolver);
+                   PrimalWithHeuristics(GurobiSolver);
+                   RelaxDualSubgradient();
+                   RelaxDualSubgradient(50.0, PolyakStepping(), 100)
+                  ]
         v_results = validate_params!(rd.X, rd.Y, bd.sparsity, method)
         @test any(isapprox.(v_results.valid_scores, 1.0, atol=1e-2))
         if isa(method, Union{ExactPrimalCuttingPlane, PrimalWithHeuristics})

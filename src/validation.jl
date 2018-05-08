@@ -1,5 +1,5 @@
-mutable struct ValidationResults{T <: RegressionMethod}
-    m_with_params::Vector{T}
+mutable struct ValidationResults
+    gammas::Vector{Float64}
     train_scores::Vector{Float64}
     valid_scores::Vector{Float64}
 end
@@ -76,15 +76,8 @@ function validate_params!(X::Array{Float64,2},
     gamma_range = 1 / sqrt(n) .* 2.^collect(0:10)
     nvals = length(gamma_range)
 
-    # Cache the methods with what we are validating in case we want to save to
-    # file validation results later
-    methods_cache = Vector{ExactPrimalCuttingPlane}(nvals)
-    for (i, g) in enumerate(gamma_range)
-        methods_cache[i] = ExactPrimalCuttingPlane(g, 30.0)
-    end
-
     # Cache results from each gamma in case it is of interest
-    v_results = ValidationResults(methods_cache, zeros(nvals), zeros(nvals))
+    v_results = ValidationResults(gamma_range, zeros(nvals), zeros(nvals))
 
     # Gammas giving highest validation score in each fold
     best_gammas = zeros(nfolds)
@@ -132,7 +125,7 @@ function valid2io(io::IO, vresults::Array{ValidationResults,2}, nrange::Vector{I
     for j = 1:size(vresults, 2)
         for i = 1:length(nrange)
             for k = 1:length(vresults[i, j].m_with_params)
-              write(io, "$j, $(nrange[i]), $(vresults[i, j].m_with_params[k].gamma), $(vresults[i, j].train_scores[k]), $(vresults[i, j].valid_scores[k]) \n")
+              write(io, "$j, $(nrange[i]), $(vresults[i, j].gammas[k]), $(vresults[i, j].train_scores[k]), $(vresults[i, j].valid_scores[k]) \n")
             end
         end
     end

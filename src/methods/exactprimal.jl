@@ -1,6 +1,18 @@
 # This file was copied from https://github.com/jeanpauphilet/SubsetSelectionCIO.jl
 # as at commit a21d34652e0349a6b6f33e9c926ffad659d05e26
 
+struct UnsetSolver <: MathProgBase.AbstractMathProgSolver end
+function getsolver(s::Type{S}, tl::Float64) where {S <: MathProgBase.AbstractMathProgSolver}
+    UnsetSolver()
+end
+function getsolver(s::Type{S}, tl::Float64) where {S <: GurobiSolver}
+    GurobiSolver(OutputFlag = 0, TimeLimit = tl)
+end
+function getsolver(s::Type{S}, tl::Float64) where {S <: CplexSolver}
+    CplexSolver(CPX_PARAM_SCRIND = 0, CPX_PARAM_MIPDISPLAY = 0,
+                CPX_PARAM_DETTILIM = tl)
+end
+
 ###########################
 # FUNCTION oa_formulation
 ###########################
@@ -28,16 +40,21 @@ OUTPUT
   Gap         - Optimality gap at termination
   cutCount    - Number of cuts needed in the cutting-plane algorithm
   """
-function oa_formulation_bm(ℓ::LossFunction, Y, X, k::Int, γ;
-          indices0=find(x-> x<k/size(X,2), rand(size(X,2))), ΔT_max=60, verbose=false, Gap=0e-3,
+function oa_formulation_bm(ℓ::LossFunction, Y, X, k::Int, γ,
+          solver::MathProgBase.AbstractMathProgSolver;
+          indices0=find(x-> x<k/size(X,2), rand(size(X,2))),
           node_heuristics=false)
+
+  if solver == UnsetSolver()
+    error("You need to set a solver for the exact primal method. E.g.:
+    `ExactPrimalCuttingPlane(0.1, 30.0, GurobiSolver)`")
+  end
 
   n = size(Y, 1)
   p = size(X, 2)
   #Info array
 
-  miop = Model(solver=GurobiSolver(MIPGap=Gap, TimeLimit=ΔT_max,
-                OutputFlag=1*verbose, LazyConstraints=1))
+  miop = Model(solver=solver)
 
   miop.ext[:heuristics_data] = # create storage
 
@@ -89,6 +106,8 @@ function oa_formulation_bm(ℓ::LossFunction, Y, X, k::Int, γ;
 
   if status != :Optimal
     Gap = 1 - JuMP.getobjbound(miop) /  getobjectivevalue(miop)
+  else
+    Gap = 0.0
   end
 
   if status == :Optimal

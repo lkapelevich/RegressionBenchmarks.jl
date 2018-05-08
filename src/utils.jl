@@ -85,11 +85,17 @@ end
 function method2str(m::RegressionMethod)
     error("You need to define `method2str` for $m.")
 end
+function solver2str(s::CplexSolver)
+    "cplex"
+end
+function solver2str(s::GurobiSolver)
+    "gurobi"
+end
 function method2str(m::ExactPrimalCuttingPlane)
-    "exact_primal_tlimit_$(m.time_limit)"
+    "exact_primal_tlimit_$(m.time_limit)_$(solver2str(m.solver))"
 end
 function method2str(m::PrimalWithHeuristics)
-    "node_heuristics_primal_tlimit_$(m.time_limit)"
+    "node_heuristics_primal_tlimit_$(m.time_limit)_$(solver2str(m.solver))"
 end
 function stepping2str(sr::ConstantStepping)
   "conststep_$(sr.stepsize)"

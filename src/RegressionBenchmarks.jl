@@ -1,7 +1,7 @@
 module RegressionBenchmarks
 
 using StatsBase, Distributions, SubsetSelection, SubsetSelectionCIO,
-      MLDataUtils, JuMP, Gurobi, CPLEX
+      MLDataUtils, JuMP, Gurobi, CPLEX, MathProgBase
 using Gadfly, DataFrames
 import Base.rand #, Base.normalize!
 import Base.mkdir
