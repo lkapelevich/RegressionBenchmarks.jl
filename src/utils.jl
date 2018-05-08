@@ -24,10 +24,10 @@ function falsepositive(pred::Vector{Int}, truth::Vector{Int})
     detected / length(pred)
 end
 
-function mse(pred::Union{Vector{Float64},SubArray{Float64}}, truth::Union{Vector{Float64},SubArray{Float64}})
+function mse(pred::YVector, truth::YVector)
     sum(abs2.(pred - truth))
 end
-function mse(pred::Union{Vector{Float64},SubArray{Float64}}, pt::Float64)
+function mse(pred::YVector, pt::Float64)
     sum(abs2.(pred - pt))
 end
 """
@@ -35,7 +35,7 @@ end
 
 Computes the out-of-sample R^2.
 """
-function oosRsquared(pred::Vector{Float64}, truth::Union{Vector{Float64},SubArray{Float64}}, train::Union{Vector{Float64},SubArray{Float64}})
+function oosRsquared(pred::Vector{Float64}, truth::YVector, train::YVector)
     1 - mse(pred, truth) / mse(pred, mean(train))
 end
 
@@ -44,7 +44,7 @@ end
 
 Computes the in-sample R^2.
 """
-function isRsquared(pred::Vector{Float64}, truth::Union{Vector{Float64},SubArray{Float64}})
+function isRsquared(pred::Vector{Float64}, truth::YVector)
     1 - mse(pred, truth) / mse(truth, mean(truth))
 end
 
@@ -107,4 +107,7 @@ function method2str(m::RelaxDualSubgradient)
     "relax_dual_subgradient_" *
     stepping2str(m.sr) *
     "_maxiter_$(m.maxiter)"
+end
+function method2str(m::RelaxDualCutting)
+    "relax_dual_cut_" * "$(solver2str(m.solver))"
 end

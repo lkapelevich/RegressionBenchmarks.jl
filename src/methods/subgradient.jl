@@ -42,7 +42,7 @@ function getdelta!(sr::ConstantStepping, ::Any, ::Array{Float64,2}, ::Vector{Flo
   sr.stepsize
 end
 function getdelta!(sr::PolyakStepping,
-      Y::Union{Vector{Float64},SubArray{Float64}}, X::Array{Float64,2},
+      Y::YVector, X::Array{Float64,2},
       α::Vector{Float64}, ∇::Vector{Float64},
       indices::Vector{Int}, n_indices::Int, γ::Float64,
       cache::SubsetSelection.Cache, pc::PolyakCache
@@ -84,7 +84,7 @@ INPUTS
 OUTPUT
 - SparseEstimator """
 function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity,
-    Y::Union{Vector{Float64},SubArray{Float64}},
+    Y::YVector,
     X::Array{Float64,2};
     indInit = SubsetSelection.ind_init(Card, size(X,2)),
     αInit = SubsetSelection.alpha_init(ℓ, Y),
@@ -189,7 +189,7 @@ function ax_squared(X, α::Vector{Float64}, indices::Vector{Int}, n_indices::Int
   axsum
 end
 
-function primal_bound(ℓ::SubsetSelection.OLS, Y::Union{Vector{Float64},SubArray{Float64}}, X::Array{Float64,2}, γ::Float64, indices::Vector{Int}, n_indices::Int)
+function primal_bound(ℓ::SubsetSelection.OLS, Y::YVector, X::Array{Float64,2}, γ::Float64, indices::Vector{Int}, n_indices::Int)
   αstar = SubsetSelectionCIO.sparse_inverse(ℓ, Y, X[:, indices], γ) # TODO could do this less often. also don't return vector after function.
   axsum = ax_squared(X, αstar, indices, n_indices)
   bound = -0.5 * dot(αstar, αstar) - dot(Y, αstar) - γ * 0.5 * axsum
@@ -197,7 +197,7 @@ function primal_bound(ℓ::SubsetSelection.OLS, Y::Union{Vector{Float64},SubArra
   # bound / size(X, 1)
 end
 
-function dual_bound(ℓ::SubsetSelection.OLS, Y::Union{Vector{Float64},SubArray{Float64}}, X::Array{Float64,2}, α::Vector{Float64}, indices::Vector{Int}, n_indices::Int, γ, cache::SubsetSelection.Cache)
+function dual_bound(ℓ::SubsetSelection.OLS, Y::YVector, X::Array{Float64,2}, α::Vector{Float64}, indices::Vector{Int}, n_indices::Int, γ, cache::SubsetSelection.Cache)
   axsum = ax_squared(X, α, indices, n_indices)
   bound = -0.5 * dot(α, α) - dot(Y, α) - γ * 0.5 * axsum
   # Normalize

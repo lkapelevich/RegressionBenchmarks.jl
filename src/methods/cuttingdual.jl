@@ -1,16 +1,16 @@
-function initial_ub(X::Array{Float64,2}, Y::Union{Vector{Float64},SubArray{Float64}},
+function initial_ub(X::Array{Float64,2}, Y::YVector,
                     s0::Vector{Float64}, sparsity::Int, γ::Float64)
     αstar = SubsetSelectionCIO.sparse_inverse(OLS(), Y, X[:, 1:sparsity], γ)
     axsum = ax_squared(X, αstar, collect(1:sparsity), sparsity)
     -0.5 * dot(αstar, αstar) - dot(Y, αstar) - γ * 0.5 * axsum
 end
 
-function getlb(Y::Union{Vector{Float64},SubArray{Float64}}, α::Vector{Float64}, ax_sparse::Vector{Float64})
+function getlb(Y::YVector, α::Vector{Float64}, ax_sparse::Vector{Float64})
     -0.5 * dot(α, α) + dot(Y, α) - γ * 0.5 * sum(ax_sparse.^2)
 end
 
 function getslope!(∇::Vector{Float64}, X::Array{Float64,2},
-            Y::Union{Vector{Float64},SubArray{Float64}}, α::Vector{Float64},
+            Y::YVector, α::Vector{Float64},
             indices::Vector{Int}, γ::Float64, sparsity::Int,
             ax_sparse::Vector{Float64})
     ∇ .= -α + Y
@@ -23,11 +23,18 @@ function getslope!(∇::Vector{Float64}, X::Array{Float64,2},
     nothing
 end
 
-function solve_dualcutting(X::Array{Float64,2},
-            Y::Union{Vector{Float64},SubArray{Float64}},
+"""
+    solve_dualcutting(X::Array{Float64,2},
+            Y::YVector,
             sparsity::Int,
             γ::Float64,
-            solver::MathProgBase.MathProgSolver)
+            solver::MathProgBase.AbstractMathProgSolver)
+"""
+function solve_dualcutting(X::Array{Float64,2},
+            Y::YVector,
+            sparsity::Int,
+            γ::Float64,
+            solver::MathProgBase.AbstractMathProgSolver)
 
     n, p = size(X)
     @assert sparsity <= p
