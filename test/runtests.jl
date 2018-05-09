@@ -101,7 +101,7 @@ end
     end
     @testset "Dual cutting planes" begin
         lpsolver = GurobiSolver(OutputFlag = 0)
-        m = RelaxDualCutting(500.0, lpsolver)
+        m = RelaxDualCutting(5.0, lpsolver)
         indices, weights = solve_problem(m, rd.X, rd.Y, sparsity)
         @test indices == find(abs.(w) .> 1e-6)
         @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)

@@ -36,6 +36,8 @@ function solve_dualcutting(X::Array{Float64,2},
             γ::Float64,
             solver::MathProgBase.AbstractMathProgSolver)
 
+    maxiter = 10_0000
+
     n, p = size(X)
     @assert sparsity <= p
     indices = collect(1:sparsity)
@@ -46,7 +48,7 @@ function solve_dualcutting(X::Array{Float64,2},
     ax_sparse = Vector{Float64}(sparsity)
     α_hat = Vector{Float64}(n)
 
-    ub = 8.0 # initial_bound
+    ub = initial_bound
     lb = -Inf
 
     m = Model(solver = solver)
@@ -58,8 +60,7 @@ function solve_dualcutting(X::Array{Float64,2},
 
     iter = 0
 
-    while (ub - lb) / (1 + abs(ub)) > 1e-5
-        iter += 1
+    while (ub - lb) / (1 + abs(ub)) > 1e-4
         # Solve cutting plane model
         @assert solve(m) == :Optimal
         # Upper bound is current optimum
@@ -68,21 +69,20 @@ function solve_dualcutting(X::Array{Float64,2},
         α_hat .= getvalue(m[:α])
         # Recover a primal solution
         ax .= X' * α_hat # TODO don't need to store all at the same time
-        indices .= sortperm(-ax)[1:sparsity]
-        # @show indices
+        indices .= sortperm(-abs.(ax))[1:sparsity]
         X_sparse = @view(X[:, indices])
         ax_sparse .= X_sparse' * α_hat        # Use it to update gradient
         getslope!(∇, X, Y, α_hat, indices, γ, sparsity, ax_sparse)
         # Lower bound is the actual function value at α_hat
         lb = getlb(Y, α_hat, ax_sparse, γ)
-        # @show lb, ub
         # Add a cut
         @constraint(m, η <= lb + dot(∇, α - α_hat))
-        if iter > 10000
+        if iter > maxiter
             break
         end
     end
     # Recover weights
     w = SubsetSelection.recover_primal(OLS(), Y, X[:,indices], γ)
-    sort(indices), w
+    perm = sortperm(indices)
+    indices[perm], w[perm]
 end
