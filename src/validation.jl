@@ -18,13 +18,11 @@ function settimelimit!(::RelaxDualSubgradient, ::Float64)
     0.0
 end
 
-const GammaMethods = Union{ExactPrimalCuttingPlane, PrimalWithHeuristics, RelaxDualSubgradient}
-
 function validate_stepsize!(::RegressionMethod,
                                 ::Array{Float64,2},
-                                ::Union{Vector{Float64},SubArray{Float64}},
+                                ::YVector,
                                 ::Array{Float64,2},
-                                ::Union{Vector{Float64},SubArray{Float64}},
+                                ::YVector,
                                 ::Int
                             )
     nothing
@@ -32,9 +30,9 @@ end
 
 function validate_stepsize!(m::RelaxDualSubgradient{SR},
                                 X_train::Array{Float64,2},
-                                Y_train::Union{Vector{Float64},SubArray{Float64}},
+                                Y_train::YVector,
                                 X_valid::Array{Float64,2},
-                                Y_valid::Union{Vector{Float64},SubArray{Float64}},
+                                Y_valid::YVector,
                                 sparsity::Int
                             ) where {SR <: PolyakStepping}
 
@@ -57,16 +55,16 @@ end
 
 """
     validate_params!(X::Array{Float64,2},
-                    Y::Union{Vector{Float64},SubArray{Float64}},
+                    Y::YVector,
                     sparsity::Int,
-                    m::GammaMethods)
+                    m::RegressionMethod)
 
 Just need to validate gamma.
 """
 function validate_params!(X::Array{Float64,2},
-                        Y::Union{Vector{Float64},SubArray{Float64}},
+                        Y::YVector,
                         sparsity::Int,
-                        m::GammaMethods)
+                        m::RegressionMethod)
 
     nfolds = 10
     folds = kfolds(shuffleobs((X', Y)), k = nfolds)

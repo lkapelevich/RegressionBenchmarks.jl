@@ -67,21 +67,26 @@ RelaxDualSubgradient() = RelaxDualSubgradient(0.0, ConstantStepping(1e-3), 100)
 """
 mutable struct RelaxDualCutting
     gamma::Float64
+    solver::MathProgBase.AbstractMathProgSolver
 end
 RelaxDualCutting() = RelaxDualCutting(0.0)
 
-function solve_problem(m::ExactPrimalCuttingPlane, X::Array{Float64,2}, Y, sparsity::Int)
+function solve_problem(m::ExactPrimalCuttingPlane, X::Array{Float64,2}, Y::YVector, sparsity::Int)
     indices0, w0, Δt, status, Gap, cutCount = oa_formulation_bm(SubsetSelection.OLS(), Y, X, sparsity, m.gamma, m.solver)
     indices0, w0
 end
 
-function solve_problem(m::PrimalWithHeuristics, X::Array{Float64,2}, Y, sparsity::Int)
+function solve_problem(m::PrimalWithHeuristics, X::Array{Float64,2}, Y::YVector, sparsity::Int)
     indices0, w0, Δt, status, Gap, cutCount = oa_formulation_bm(SubsetSelection.OLS(), Y, X, sparsity, m.gamma, m.solver, node_heuristics=true)
     indices0, w0
 end
 
-function solve_problem(m::RelaxDualSubgradient, X::Array{Float64,2}, Y, k::Int)
-  sparsity = SubsetSelection.Constraint(k)
-  sp = subsetSelection_bm(SubsetSelection.OLS(), sparsity, Y, X, γ = m.gamma, sr = m.sr, maxIter = m.maxiter)
-  sp.indices, sp.w
+function solve_problem(m::RelaxDualSubgradient, X::Array{Float64,2}, Y::YVector, k::Int)
+    sparsity = SubsetSelection.Constraint(k)
+    sp = subsetSelection_bm(SubsetSelection.OLS(), sparsity, Y, X, γ = m.gamma, sr = m.sr, maxIter = m.maxiter)
+    sp.indices, sp.w
+end
+
+function solve_problem(m::RelaxDualCutting, X::Array{Float64,2}, Y::YVector, k::Int)
+    solve_dualcutting(X, Y, k, m.gamma, m.solver)
 end

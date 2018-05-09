@@ -41,7 +41,7 @@ OUTPUT
   cutCount    - Number of cuts needed in the cutting-plane algorithm
   """
 function oa_formulation_bm(ℓ::LossFunction,
-          Y::Union{Vector{Float64},SubArray{Float64}},
+          Y::YVector,
           X::Array{Float64,2}, k::Int, γ::Float64,
           solver::MathProgBase.AbstractMathProgSolver;
           indices0=find(x-> x<k/size(X,2), rand(size(X,2))),

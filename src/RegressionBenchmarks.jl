@@ -23,6 +23,8 @@ export BinChoice, NoNoise, MatrixCorrelation, NoCorrelation,
     data2str, method2str #,
     # normalize!
 
+const YVector = Union{Vector{Float64},SubArray{Float64,1}}
+
 include("datatypes.jl")
 include("data.jl")
 include("methods/methods.jl")
@@ -30,6 +32,8 @@ include("utils.jl")
 include("validation.jl")
 include("benchmark.jl")
 include("plots.jl")
+
+# TODO keyword argument in sort function type unstable make it sort -ax
 
 # TODO try cutting plane with user heuristic. cache subgradient in extension dictionary
 # TODO lagrangian relaxation relaxing knapsack constraint
