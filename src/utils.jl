@@ -92,10 +92,18 @@ function solver2str(s::GurobiSolver)
     "gurobi"
 end
 function method2str(m::ExactPrimalCuttingPlane)
-    "exact_primal_tlimit_$(m.time_limit)_$(solver2str(m.solver))"
+    if m.warm_start != NoWarmStart()
+        "exact_primal_tlimit_$(m.time_limit)_$(solver2str(m.solver))_ws"
+    else
+        "exact_primal_tlimit_$(m.time_limit)_$(solver2str(m.solver))"
+    end
 end
 function method2str(m::PrimalWithHeuristics)
-    "node_heuristics_primal_tlimit_$(m.time_limit)_$(solver2str(m.solver))"
+    if m.warm_start != NoWarmStart()
+        "node_heuristics_primal_tlimit_$(m.time_limit)_$(solver2str(m.solver))_ws"
+    else
+        "node_heuristics_primal_tlimit_$(m.time_limit)_$(solver2str(m.solver))"
+    end
 end
 function stepping2str(sr::ConstantStepping)
   "conststep_$(sr.stepsize)"

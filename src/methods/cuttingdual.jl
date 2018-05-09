@@ -36,6 +36,11 @@ function solve_dualcutting(X::Array{Float64,2},
             γ::Float64,
             solver::MathProgBase.AbstractMathProgSolver)
 
+    if solver == UnsetSolver()
+        error("You need to set a solver for the cutting plane method. E.g.:
+                `RelaxDualCutting(0.1, GurobiSolver())`")
+    end
+
     maxiter = 10_0000
 
     n, p = size(X)

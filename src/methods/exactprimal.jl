@@ -54,11 +54,8 @@ function oa_formulation_bm(ℓ::LossFunction,
 
   n = size(Y, 1)
   p = size(X, 2)
-  #Info array
 
   miop = Model(solver=solver)
-
-  miop.ext[:heuristics_data] = # create storage
 
   s0 = zeros(p); s0[indices0]=1
   c0, ∇c0 = SubsetSelectionCIO.inner_op(ℓ, Y, X, s0, γ)

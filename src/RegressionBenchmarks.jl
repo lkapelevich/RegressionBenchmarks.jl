@@ -10,7 +10,7 @@ export BinChoice, NoNoise, MatrixCorrelation, NoCorrelation,
     getw, getX, getdata, BenchmarkData, XData,
     # Methods
     RegressionMethod, ExactPrimalCuttingPlane, PrimalWithHeuristics,
-    RelaxDualSubgradient, RelaxDualCutting,
+    RelaxDualSubgradient, RelaxDualCutting, NoWarmStart,
     # Parts of methods
     ConstantStepping, PolyakStepping,
     # Validate and solve
@@ -37,8 +37,5 @@ include("plots.jl")
 
 # TODO try cutting plane with user heuristic. cache subgradient in extension dictionary
 # TODO lagrangian relaxation relaxing knapsack constraint
-# TODO different solvers should enter different methods
-# TODO subgradient with varying stepsizes
-# TODO validation results to file
 
 end # module

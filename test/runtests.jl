@@ -59,9 +59,12 @@ end
         m = RelaxDualSubgradient(5.0, PolyakStepping(2.0, 30), 100)
         @test method2str(m) ==
             "relax_dual_subgradient_polyak_2.0_maxiter_100"
-        m = ExactPrimalCuttingPlane(0.1, 30.0, GurobiSolver)
+        m = ExactPrimalCuttingPlane(0.1, 30.0, GurobiSolver, NoWarmStart())
         @test method2str(m) ==
             "exact_primal_tlimit_30.0_gurobi"
+        m = ExactPrimalCuttingPlane(0.1, 30.0, GurobiSolver, RelaxDualSubgradient())
+        @test method2str(m) ==
+            "exact_primal_tlimit_30.0_gurobi_ws"
     end
 end
 
@@ -102,6 +105,13 @@ end
     @testset "Dual cutting planes" begin
         lpsolver = GurobiSolver(OutputFlag = 0)
         m = RelaxDualCutting(5.0, lpsolver)
+        indices, weights = solve_problem(m, rd.X, rd.Y, sparsity)
+        @test indices == find(abs.(w) .> 1e-6)
+        @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)
+    end
+    @testset "Warm starts" begin
+        warm_start = RelaxDualSubgradient(50.0, PolyakStepping(0.5, 30), 100)
+        m = ExactPrimalCuttingPlane(5.0, 10.0, GurobiSolver, warm_start)
         indices, weights = solve_problem(m, rd.X, rd.Y, sparsity)
         @test indices == find(abs.(w) .> 1e-6)
         @test isapprox(weights, w[abs.(w) .> 1e-6], atol = 1e-1)
