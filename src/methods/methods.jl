@@ -69,7 +69,7 @@ mutable struct RelaxDualCutting
     gamma::Float64
     solver::MathProgBase.AbstractMathProgSolver
 end
-RelaxDualCutting() = RelaxDualCutting(0.0)
+RelaxDualCutting() = RelaxDualCutting(0.0, UnsetSolver())
 
 function solve_problem(m::ExactPrimalCuttingPlane, X::Array{Float64,2}, Y::YVector, sparsity::Int)
     indices0, w0, Δt, status, Gap, cutCount = oa_formulation_bm(SubsetSelection.OLS(), Y, X, sparsity, m.gamma, m.solver)
