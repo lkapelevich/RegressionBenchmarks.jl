@@ -122,7 +122,7 @@ function valid2io(io::IO, vresults::Array{ValidationResults,2}, nrange::Vector{I
     write(io, "test_fold, n, gamma, mean_train_score, mean_valid_score \n")
     for j = 1:size(vresults, 2)
         for i = 1:length(nrange)
-            for k = 1:length(vresults[i, j].m_with_params)
+            for k = 1:length(vresults[i, j].gammas)
               write(io, "$j, $(nrange[i]), $(vresults[i, j].gammas[k]), $(vresults[i, j].train_scores[k]), $(vresults[i, j].valid_scores[k]) \n")
             end
         end

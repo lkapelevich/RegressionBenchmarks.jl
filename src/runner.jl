@@ -1,5 +1,5 @@
 using RegressionBenchmarks, Distributions, MLDataUtils, DataFrames, Gurobi,
-    Cplex
+    CPLEX
 
 srand(1)
 
