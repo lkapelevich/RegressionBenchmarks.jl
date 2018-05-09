@@ -1,12 +1,10 @@
-using RegressionBenchmarks, Distributions, MLDataUtils, DataFrames
+using RegressionBenchmarks, Distributions, MLDataUtils, DataFrames, Gurobi,
+    Cplex
 
 srand(1)
 
 # The scale of data we care about
 nrange = collect(100:20:500)
-
-# Number of features
-d = 1000
 
 # What form will the correlation in X take
 Xcorr = NoCorrelation()
@@ -33,7 +31,8 @@ for Xdist in [Uniform, MvNormal]
                                     nfeatures = d,
                                     sparsity = sparsity)
                   # Choose model
-                  for m in [ExactPrimalCuttingPlane(0.0, 300.0)]
+                  for m in [RelaxDualSubgradient(0.0, PolyakStepping(2.0, 30), 100);
+                            RelaxDualCutting(0.0, GurobiSolver(OutputFlag=0))]
                       # Get results
                       results_table, val_results = benchmark(bd, m)
                       # Save
