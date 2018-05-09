@@ -17,6 +17,9 @@ end
 function settimelimit!(::RelaxDualSubgradient, ::Float64)
     0.0
 end
+function settimelimit!(::RelaxDualCutting, ::Float64)
+    0.0
+end
 
 function validate_stepsize!(::RegressionMethod,
                                 ::Array{Float64,2},
