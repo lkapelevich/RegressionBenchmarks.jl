@@ -12,6 +12,7 @@ end
 function settimelimit!(m::Union{ExactPrimalCuttingPlane, PrimalWithHeuristics}, t::Float64)
     old_tl = m.time_limit
     m.time_limit = t
+    m.solver = getsolver(typeof(m.solver), t)
     old_tl
 end
 function settimelimit!(::RelaxDualSubgradient, ::Float64)
