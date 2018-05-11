@@ -1,8 +1,7 @@
-function benchmark(bd::BenchmarkData, method::RegressionMethod)
+function benchmark(bd::BenchmarkData, method::RegressionMethod, nfolds::Int=5)
 
     nrange = length(bd.n)
     results = zeros(nrange, 6)
-    nfolds = 5
 
     validation_results = Array{ValidationResults,2}(nrange, nfolds)
 
