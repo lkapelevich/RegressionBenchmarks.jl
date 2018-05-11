@@ -10,7 +10,7 @@ function getsolver(s::Type{S}, tl::Float64) where {S <: GurobiSolver}
 end
 function getsolver(s::Type{S}, tl::Float64) where {S <: CplexSolver}
     CplexSolver(CPX_PARAM_SCRIND = 0, CPX_PARAM_MIPDISPLAY = 0,
-                CPX_PARAM_DETTILIM = tl)
+                CPXPARAM_TimeLimit = tl)
 end
 
 ###########################
