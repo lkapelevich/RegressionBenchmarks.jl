@@ -47,8 +47,8 @@ function getdelta!(sr::PolyakStepping,
       indices::Vector{Int}, n_indices::Int, γ::Float64,
       cache::SubsetSelection.Cache, pc::PolyakCache
      )
-  lower_bound = dual_bound(SubsetSelection.OLS(), Y, X, α, indices, n_indices, γ, cache)
-  upper_bound = primal_bound(SubsetSelection.OLS(), Y, X, γ, indices, n_indices)
+  @timeit TimeStats "Dual Bound" lower_bound = dual_bound(SubsetSelection.OLS(), Y, X, α, indices, n_indices, γ, cache)
+  @timeit TimeStats "Primal Bound" upper_bound = primal_bound(SubsetSelection.OLS(), Y, X, γ, indices, n_indices)
   if upper_bound < pc.best_upper
     pc.best_upper = upper_bound
     pc.best_inds .= indices
@@ -91,6 +91,8 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity,
     γ = 1/sqrt(size(X,1)),  intercept = false,
     maxIter = 100, sr::SteppingRule = ConstantStepping(1e-3), gradUp = 1,
     anticycling = false, averaging = true)
+
+  @timeit TimeStats "in subgradient descent" begin
 
   n,p = size(X)
   cache = SubsetSelection.SubsetSelection.Cache(n, p)
@@ -176,6 +178,8 @@ function subsetSelection_bm(ℓ::LossFunction, Card::Sparsity,
   #Resize final indices vector to only have relevant entries
   resize!(indices, n_indices)
 
+   end # timing
+
   return SubsetSelection.SparseEstimator(ℓ, Card, indices, w, a, b, maxIter)
 end
 
@@ -190,7 +194,7 @@ function ax_squared(X, α::Vector{Float64}, indices::Vector{Int}, n_indices::Int
 end
 
 function primal_bound(ℓ::SubsetSelection.OLS, Y::YVector, X::Array{Float64,2}, γ::Float64, indices::Vector{Int}, n_indices::Int)
-  αstar = SubsetSelectionCIO.sparse_inverse(ℓ, Y, X[:, indices], γ) # TODO could do this less often. also don't return vector after function.
+  @timeit TimeStats "Inverting matrix" αstar = SubsetSelectionCIO.sparse_inverse(ℓ, Y, X[:, indices], γ) # TODO could do this less often. also don't return vector after function.
   axsum = ax_squared(X, αstar, indices, n_indices)
   bound = -0.5 * dot(αstar, αstar) - dot(Y, αstar) - γ * 0.5 * axsum
   # Normalize TODO normalize this and grad dual

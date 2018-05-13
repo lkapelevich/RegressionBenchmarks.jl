@@ -1,7 +1,7 @@
 module RegressionBenchmarks
 
 using StatsBase, Distributions, SubsetSelection, SubsetSelectionCIO,
-      MLDataUtils, JuMP, Gurobi, CPLEX, MathProgBase
+      MLDataUtils, JuMP, Gurobi, CPLEX, MathProgBase, TimerOutputs
 using Gadfly, DataFrames
 import Base.rand #, Base.normalize!
 import Base.mkdir
@@ -24,6 +24,7 @@ export BinChoice, NoNoise, MatrixCorrelation, NoCorrelation,
     # normalize!
 
 const YVector = Union{Vector{Float64},SubArray{Float64,1}}
+const TimeStats = TimerOutput()
 
 include("datatypes.jl")
 include("data.jl")
