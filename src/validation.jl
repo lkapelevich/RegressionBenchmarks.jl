@@ -86,6 +86,11 @@ function validate_params!(X::Array{Float64,2},
 
     old_tl = settimelimit!(m, 60.0)
 
+    # train_scores = SharedArray{Float64}(length(gamma_range))
+    # train_scores .= 0.0
+    # valid_scores = SharedArray{Float64}(length(gamma_range))
+    # valid_scores .= 0.0
+
     # Validate over all folds in the data
     fold = 1
     for ((X_train, Y_train), (X_valid, Y_valid)) in folds
@@ -114,6 +119,8 @@ function validate_params!(X::Array{Float64,2},
         end
         fold += 1
     end
+    # v_results.train_scores = train_scores
+    # v_results.valid_scores = valid_scores
     settimelimit!(m, old_tl)
     v_results.train_scores ./= nfolds
     v_results.valid_scores ./= nfolds
