@@ -1,1 +1,13 @@
 julia 0.6
+StatsBase
+Distributions
+SubsetSelection
+SubsetSelectionCIO
+MLDataUtils
+JuMP
+Gurobi
+CPLEX
+MathProgBase
+TimerOutputs
+Gadfly
+DataFrames

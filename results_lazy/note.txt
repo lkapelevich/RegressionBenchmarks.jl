@@ -1,0 +1,1 @@
+The results in this folder were created with fewer folds in testing and in cross-validation than in the results folder.
