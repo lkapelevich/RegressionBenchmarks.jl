@@ -18,7 +18,7 @@ The plan is to also extend this to related regression tasks e.g. cluster regress
 
 ## Methods
 * Exact MIP (primal)
-* Subgradient ascent in dual space TODO varying stepsizes
+* Subgradient ascent in dual space
 * Cutting planes in dual space
 * Exact MIP (primal) with user node heuristics
 * Relaxation on primal with cutting planes (heuristic fixing largest alphaKalpha)
