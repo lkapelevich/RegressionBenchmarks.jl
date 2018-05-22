@@ -1,4 +1,3 @@
 we aren't even recovering the truth properly with constant steps
 first experiment up to 500
 second and fourth validate each other
-third should be in lazy_results

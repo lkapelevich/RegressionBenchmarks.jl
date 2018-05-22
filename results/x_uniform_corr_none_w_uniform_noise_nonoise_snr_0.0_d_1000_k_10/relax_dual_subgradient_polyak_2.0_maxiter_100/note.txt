@@ -1,1 +1,0 @@
-should really delete both of these, initial step not cross validated and results are much better when it is validated

@@ -29,6 +29,7 @@ function benchmark(bd::BenchmarkData, method::RegressionMethod, nfolds::Int=5)
             train_R2 = isRsquared(pred_train, y_train)
             pred_test  = predict_sparse(X_test, indices, w)
             test_R2 = oosRsquared(pred_test, y_test, y_train)
+            @show bd.n[i], a
             results[i, :] .+= [a, f, train_R2, test_R2, time, method.gamma]
         end
     end
