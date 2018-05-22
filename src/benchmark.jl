@@ -8,8 +8,6 @@ function benchmark(bd::BenchmarkData, method::RegressionMethod, nfolds::Int=5)
     for i = 1:nrange
         # Generate some synthetic data
         rd = getdata(bd, i)
-        # Normalize it
-        # normalize!(rd)
         true_support = find(abs.(rd.w) .> 1e-6)
 
         folds = kfolds(shuffleobs((rd.X', rd.Y)), k = nfolds)

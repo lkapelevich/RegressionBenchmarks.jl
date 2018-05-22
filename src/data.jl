@@ -48,14 +48,3 @@ function getdata(bd::BenchmarkData, i::Int)
     Y .+= noise
     RegressionData(X, Y, w)
 end
-
-function Base.normalize!(rd::RegressionData)
-    for p = 1:size(rd.X, 2)
-        μ = mean(rd.X[:, p])
-        σ = std(rd.X[:, p])
-        (σ < 1e-6) && continue
-        rd.X[:, p] .= (rd.X[:, p] - μ) / σ
-    end
-    rd.Y .= (rd.Y - mean(rd.Y)) / std(rd.Y)
-    nothing
-end
