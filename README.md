@@ -29,11 +29,16 @@ bd = BenchmarkData(Xdata = Xdata(MvNormal, NoCorrelation()),
                   wdist = BinChoice(),
                   noisedist = NoNoise(),
                   SNR = 0.0,
-                  n = nrange,
-                  nfeatures = d,
-                  sparsity = sparsity)
+                  n = collect(100:20:500),
+                  nfeatures = 1000,
+                  sparsity = 10)
 # Model
 m = ExactPrimalCuttingPlane()
 # Results
 results_table = benchmark(bd, m)
 ```
+
+## References
+Bertsimas, Dimitris, and Bart Van Parys. "Sparse high-dimensional regression: Exact scalable algorithms and phase transitions." _arXiv preprint arXiv:1709.10029 (2017)._
+
+Bertsimas, Dimitris, Jean Pauphilet, and Bart Van Parys. "Sparse Classification and Phase Transitions: A Discrete Optimization Perspective." _arXiv preprint arXiv:1710.01352 (2017)._
