@@ -1,5 +1,7 @@
 # RegressionBenchmarks
 
+(This was a class project and not meant to be maintained or used for anything super serious)
+
 This package was created to make benchmarking different approaches to the best subset problem easier, and archive results.
 
 We separate the characteristics that our data has from the method we use to solve the regression problem.
